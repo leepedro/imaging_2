@@ -1,0 +1,15 @@
+<Conversion between sensor/storage data structure and image processing data structure>
+
+[Sensor/storage data structure]
+{band, column, row} in any combination
+BIP: band -> column -> row
+BSQ: column -> row -> band
+BIL: column -> band -> row
+
+[Image processing data structure]
+channel -> pixel -> line -> frame -> block (always)
+
+[Conversion]
+1. band <-> channel
+
+2. band <-> frame

@@ -1,0 +1,72 @@
+Design consideration about how to structure image data
+
+<Sensor data or storage data>
+Any data set directly related to a specific file format or a sensor type.
+This structure should be used only to directly store/load data from/to a file, stream or
+sensor.
+Any computation using the data should be done on image processing data instead of this data
+after a translation/mapping process.
+Each data set may contain meta data block about the measurement.
+Each data set is a single measurement. I = I(t) where t = 0.
+If multiple or continuous measurements are to be stored, it will be an array of this
+structure.
+Each data set should be loaded in a continuous memory block.
+The logic to access data is different depending on BIP vs. BSQ vs. BIL.
+
+[BIP] band-interleaved by pixel or pixel interleaved
+examples: most of color cameras with RGB mosaics
+Physical distance (at the target) between pixels for horizontal and vertical directions are
+usually identical.
+Data is stored as BAND -> column -> row.
+The number of bands is usually limited, up to 3.
+
+[BSQ] band-sequential or band interleaved
+examples: cameras with optical filters
+Physical distance (at the target) between pixels for horizontal and vertical directions are
+usually identical.
+Data is stored as column -> row -> BAND.
+The number of bands is usually higher than BIP, but still limited.
+
+[BIL] band-interleaved by line or row interleaved
+examples: line sensors with a spectral slit and a prism or grading
+Physical distance (at the target) between pixels for horizontal and vertical directions are
+usually NOT identical.
+Data is stored as column -> BAND -> row.
+The number of bands is usually higher than BIL, but still limited.
+
+Multi-spectral image data with a few spectral bands are occasionally collected as many
+measurements at different times. {I} = {I(t)} where t = {0, ..., N}.
+The multiple measurement may be stored in one file, but they should be multiple instances of
+this object.
+Hyper-spectral image data with many spectral bands are almost always collected as a single
+measurement. I = I(t) where t = 0.
+
+
+<Image processing data>
+Any data set for computation in memory or visualization on screens, e.g., bitmap image data.
+This structure should not be tied to any sensor and should not contain meta data blocks.
+Data could be a single measurement or multiple measurements. I = I(t) where t = {0, ..., N}.
+Data is ALWAYS stored as CHANNEL -> pixel (column) -> line (row) -> FRAME.
+Channel usually corresponds to the band in BIP sensor data.
+Frame usually corresponds to the band in BSQ sensor data or time in movie data.
+The number of channels is usually limited (up to 4) and fixed while the number of frames is
+usually UNLIMITED.
+Physical distance (on the screen) between pixels for horizontal and vertical directions are
+(usually) identical.
+Up to one frame should be loaded in a continuous memory block, but multiple frames could be
+distributed at multiple memory blocks or even at a disk at any given time.
+
+[Mapping] band and time <-> channel and frame
+The color bands are channels in RGB bitmap images.
+The color bands are frames in planar RGB images. (deprecating?)
+The spectral bands are frames in multi- or hyper-spectral images.
+Time-sequenced measurement are frames in movie data.
+NOTE: Even though color bands are a type of spectral bands for sensors, they are considered
+as channels in this structure for visualization purpose.
+If a color image is actually treated as a multi-spectral image, then it may be represented
+as 3 frames of single-channel image.
+
+Q. What about multiple measurements of multi-spectral images?
+It should be reconstructed as an array of structures where frames presents time, so each data
+set is designated for each band.
+In other words, frames should present bands only if the data is a single-measurement.
