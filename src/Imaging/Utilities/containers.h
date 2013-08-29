@@ -4,11 +4,34 @@
 // Global functions and operators for std::array<T, N>, std::vector<T> classes.
 
 #include <array>
+#include <algorithm>
+#include <vector>
+
+#include "safecast.h"
 
 namespace Imaging
 {
 	////////////////////////////////////////////////////////////////////////////////////////
 	// Global functions and operators for std::array<T, N> class.
+
+	////////////////////////////////////////////////////////////////////////////////////////
+	/** Safe implicit conversion
+	
+	Problem: Only the following four widening conversion cases are truly safe during data
+	type conversion.
+	The rest of converion scenarios are vulnerable for overflow or data loss, so compiler
+	throws a warning.
+	1) integer -> floating && src < dst
+	2) floating -> floating && src <= dst
+	3) integer -> integer && {u -> u || s -> s} && src <= dst
+	4) integer -> integer && {u -> s} && src < dst
+	Generally [integer -> integer && {u -> s || s -> u} && src == dst] is allowed for
+	implicit conversion by compilers, but there is a risk for overflow.
+
+	Solution: Enable function or class for only these four cases with type traits.
+	If other snecenarios, i.e., narrowing conversion, are really necessary, use
+	static_cast<> and be aware of data loss and overflow. */
+	////////////////////////////////////////////////////////////////////////////////////////
 
 	/** Copies one array to another with the same or different data type.
 

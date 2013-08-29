@@ -1,5 +1,6 @@
 /** This file contains the test functions to test classes and functions defined utilities.h */
-#include "../Imaging/utilities.h"
+//#include "../Utilities/safecast.h"
+#include "../Utilities/containers.h"
 
 #include <stdexcept>
 #include <iostream>
@@ -9,8 +10,7 @@ void TestSafeCast(const T src, U &dst)
 {	
 	try
 	{
-		//Imaging::SafeCast(src, dst);
-		dst = Imaging::SafeCast_<U>(src);
+		dst = Imaging::SafeCast<U>(src);
 		std::cout << "Casted " << typeid(T).name() << " " << src << " to " <<
 		typeid(U).name() << " " << dst << std::endl;
 	}
@@ -84,7 +84,6 @@ void TestSafeAdd(T a, T b, T &c)
 {
 	try
 	{
-		//Imaging::SafeAdd(a, b, c);
 		c = Imaging::SafeAdd(a, b);
 		std::cout << typeid(T).name() << " " << a << " + " <<
 		typeid(T).name() << " " << b << " = " << typeid(T).name() << " " << c << std::endl;
@@ -130,87 +129,87 @@ void TestSafeArithmetic(void)
 	std::cout << "Test for safe arithmetic operation completed." << std::endl;
 }
 
-template <typename T, ::size_t N>
-void TestStdArrayAdd(const std::array<T, N> &a, const std::array<T, N> &b,
-					 std::array<T, N> &c)
-{
-	try
-	{
-		// Following line does not work without "using namespace Imaging".
-		//c = a + b;
+//template <typename T, ::size_t N>
+//void TestStdArrayAdd(const std::array<T, N> &a, const std::array<T, N> &b,
+//					 std::array<T, N> &c)
+//{
+//	try
+//	{
+//		// Following line does not work without "using namespace Imaging".
+//		//c = a + b;
+//
+//		// Following line works.
+//		c = Imaging::operator+(a, b);
+//		Imaging::Add(a, b, c);
+//		std::cout << "Added two std::array<" << typeid(T).name() << ">." << std::endl;
+//	}
+//	catch (const std::overflow_error &)
+//	{
+//		std::cout << "Overflow detected while adding two std::array<" << typeid(T).name()
+//			<< ">." << std::endl;
+//	}
+//	catch (...)
+//	{
+//		throw;
+//	}
+//}
 
-		// Following line works.
-		c = Imaging::operator+(a, b);
-		Imaging::Add(a, b, c);
-		std::cout << "Added two std::array<" << typeid(T).name() << ">." << std::endl;
-	}
-	catch (const std::overflow_error &)
-	{
-		std::cout << "Overflow detected while adding two std::array<" << typeid(T).name()
-			<< ">." << std::endl;
-	}
-	catch (...)
-	{
-		throw;
-	}
-}
-
-void TestStdArray(void)
-{
-	std::cout << "Test for safe arithmetic operation for std::array<T, N> started."
-		<< std::endl;
-
-	int i_max = std::numeric_limits<int>::max();
-	int i_min = std::numeric_limits<int>::min();
-	std::array<int, 3> i1 = {0, 1, 2}, i2 = {i_max, i_max, i_max}, i3, i0;
-	std::array<int, 3> i4 = {0, -1, -2}, i5 = {i_min, i_min, i_min}, i6;
-
-	TestStdArrayAdd(i1, i4, i0);
-
-	// Adding with negative integer overflow risk.
-	std::cout << std::endl;
-	std::cout << "negative integer overflow risk" << std::endl;
-	TestStdArrayAdd(i4, i5, i6);
-
-	// Adding positive integer overflow risk.
-	std::cout << std::endl;
-	std::cout << "positive integer overflow risk" << std::endl;
-	TestStdArrayAdd(i1, i2, i3);
-
-	// Round off
-	std::array<double, 3> d1 = {0.4, 0.5, 0.6}, d2, d3, d4;
-	Imaging::Add(d1, 1.0, d2);
-	Imaging::Add(d1, 2.0, d3);
-	Imaging::Add(d1, d3, d4);
-	Imaging::RoundAs(d2, i2);
-	Imaging::RoundAs(d3, i3);
-
-	// Multiplication
-	Imaging::Multiply(i1, 2.0, d1);
-	d2 = Imaging::operator*(i1, 2.0);
-	if (d1 == d2)
-		std::cout << "Multiplying an array with a scalar was successful." << std::endl;
-	else
-		std::cout << "Multiplying an array with a scalar was NOT successful." << std::endl;
-	Imaging::Multiply(i1, d1, d3);
-	d4 = Imaging::operator*(i1, d1);
-	if (d3 == d4)
-		std::cout << "Multiplying an array with another array was successful." << std::endl;
-	else
-		std::cout << "Multiplying an array with another array was NOT successful." << std::endl;
-
-	// Normalization
-	d1 = Imaging::Normalize(i1);
-
-	std::cout << "Test for safe arithmetic operation for std::array<T, N> has been completed."
-		<< std::endl;
-}
+//void TestStdArray(void)
+//{
+//	std::cout << "Test for safe arithmetic operation for std::array<T, N> started."
+//		<< std::endl;
+//
+//	int i_max = std::numeric_limits<int>::max();
+//	int i_min = std::numeric_limits<int>::min();
+//	std::array<int, 3> i1 = {0, 1, 2}, i2 = {i_max, i_max, i_max}, i3, i0;
+//	std::array<int, 3> i4 = {0, -1, -2}, i5 = {i_min, i_min, i_min}, i6;
+//
+//	TestStdArrayAdd(i1, i4, i0);
+//
+//	// Adding with negative integer overflow risk.
+//	std::cout << std::endl;
+//	std::cout << "negative integer overflow risk" << std::endl;
+//	TestStdArrayAdd(i4, i5, i6);
+//
+//	// Adding positive integer overflow risk.
+//	std::cout << std::endl;
+//	std::cout << "positive integer overflow risk" << std::endl;
+//	TestStdArrayAdd(i1, i2, i3);
+//
+//	// Round off
+//	std::array<double, 3> d1 = {0.4, 0.5, 0.6}, d2, d3, d4;
+//	Imaging::Add(d1, 1.0, d2);
+//	Imaging::Add(d1, 2.0, d3);
+//	Imaging::Add(d1, d3, d4);
+//	Imaging::RoundAs(d2, i2);
+//	Imaging::RoundAs(d3, i3);
+//
+//	// Multiplication
+//	Imaging::Multiply(i1, 2.0, d1);
+//	d2 = Imaging::operator*(i1, 2.0);
+//	if (d1 == d2)
+//		std::cout << "Multiplying an array with a scalar was successful." << std::endl;
+//	else
+//		std::cout << "Multiplying an array with a scalar was NOT successful." << std::endl;
+//	Imaging::Multiply(i1, d1, d3);
+//	d4 = Imaging::operator*(i1, d1);
+//	if (d3 == d4)
+//		std::cout << "Multiplying an array with another array was successful." << std::endl;
+//	else
+//		std::cout << "Multiplying an array with another array was NOT successful." << std::endl;
+//
+//	// Normalization
+//	d1 = Imaging::Normalize(i1);
+//
+//	std::cout << "Test for safe arithmetic operation for std::array<T, N> has been completed."
+//		<< std::endl;
+//}
 
 void TestUtilities(void)
 {
-	std::cout << std::endl << "Test for utilities.h has started." << std::endl;
+	std::cout << std::endl << "Test for Utilities has started." << std::endl;
 	TestsSafeCast();
-	TestSafeArithmetic();
-	TestStdArray();
-	std::cout << "Test for utilities.h has been completed." << std::endl;
+	//TestSafeArithmetic();
+	//TestStdArray();
+	std::cout << "Test for Utilities has been completed." << std::endl;
 }

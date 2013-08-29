@@ -1,4 +1,4 @@
-#include "../Imaging/image.h"
+//#include "../Imaging/image.h"
 
 #include "tests.h"
 
@@ -9,10 +9,10 @@ int main(void)
 {
 	try
 	{
-		//TestUtilities();
+		TestUtilities();
 		//TestCoordinates();
 		//TestImage();
-		TestImageFrame();
+		//TestImageFrame();
 	}
 	catch (const std::exception &ex)
 	{
