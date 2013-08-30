@@ -182,6 +182,11 @@ void TestStdArray(void)
 	std::cout << "positive integer overflow risk" << std::endl;
 	TestStdArrayAdd(i1, i2, i3);
 
+	{
+		using namespace Imaging;
+		Add(i4, 2);
+		i4 += 2;
+	}
 	// Round off
 	std::array<double, 3> d1 = {0.4, 0.5, 0.6}, d2, d3, d4;
 	Imaging::Add(d1, 1.0, d2);

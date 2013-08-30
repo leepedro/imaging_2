@@ -82,34 +82,45 @@ namespace Imaging
 
 	/** A += B
 
-	Adds two std::array<T, N> objects of the same data type and length and update oen of the
-	source object. */
+	Adds two std::array<T, N> objects of the same data type and length, and update the first
+	one. */
 	template <typename T, ::size_t N>
 	void Add(std::array<T, N> &a, const std::array<T, N> &b);
 
-	/** A += B
-	*/
+	/** A += B */
 	template <typename T, ::size_t N>
 	std::array<T, N> &operator+=(std::array<T, N> &a, const std::array<T, N> &b);
 
 	/** C = A + b
 	
-	Adds a scalar value into all elements of an std::array<T, N> object of the same data
-	type.
+	Adds a scalar value into all elements of an std::array<T, N> and return the result as
+	another array.
 	
 	@exception std::overflow_error	if the result of any element is below or beyond the
 	range of the data type */
 	template <typename T, ::size_t N>
 	void Add(const std::array<T, N> &a, const T &b, std::array<T, N> &c);
 
-	// C = A + b
+	/** C = A + b */
 	template <typename T, ::size_t N>
 	std::array<T, N> operator+(const std::array<T, N> &a, const T &b);
 
-	// TODO!!!
-	// A += b
+	/** A += b
 
-	/** Rounds off an std::array<T, N> from floating point data type to a given data type.
+	Adds a scalar value into all elements of an std::array<T, N> and update it.
+
+	@exception std::overflow_error	if the result of any element is below or beyond the
+	range of the data type*/
+	template <typename T, ::size_t N>
+	void Add(std::array<T, N> &a, const T &b);
+
+	/** A += b */
+	template <typename T, ::size_t N>
+	std::array<T, N> &operator+=(std::array<T, N> &a, const T &b);
+
+	/** B = round(A)
+	
+	Rounds off an std::array<T, N> from floating point data type to a given data type.
 		
 	This function template implements the 'round-off from zero' algorithm.
 	It is also enabled only if source is a floating point data type. */
@@ -117,22 +128,51 @@ namespace Imaging
 	typename std::enable_if<std::is_floating_point<T>::value, void>::type
 		RoundAs(const std::array<T, N> &src, std::array<U, N> &dst);
 
-	/** Multiplies an std::array<T, N> with a (double) scalar, and saves the result into an
+	/** C = A * b
+	
+	Multiplies an std::array<T, N> with a (double) scalar, and saves the result into an
 	std::array<double, N> object. */
 	template <typename T, ::size_t N>
 	void Multiply(const std::array<T, N> &a, double b, std::array<double, N> &c);
 
+	/** C = A * b */
 	template <typename T, ::size_t N>
 	std::array<double, N> operator*(const std::array<T, N> &a, double b);
 
-	/** Multiplies an std::array<T, N> with an std::array<double, N>, and saves the result into an
-	std::array<double, N> object. */
+	/** C = A * B
+	
+	Multiplies an std::array<T, N> with an std::array<double, N>, and saves the result
+	into an std::array<double, N> object. */
 	template <typename T, ::size_t N>
 	void Multiply(const std::array<T, N> &a, const std::array<double, N> &b,
 		std::array<double, N> &c);
 
+	/** C = A * B */
 	template <typename T, ::size_t N>
 	std::array<double, N> operator*(const std::array<T, N> &a, const std::array<double, N> &b);
+
+	/** A *= b
+
+	Multiplies an std::array<double, N> with a scalar, and updates it. */
+	template <::size_t N>
+	void Multiply(std::array<double, N> &a, double b);
+
+	/** A *= b */
+	template <::size_t N>
+	std::array<double, N> &operator*=(std::array<double, N> &a, double b);
+
+	// TODO !!!
+	/** A *= B
+
+	Multiplies two std::array<double, N> objects with the same length, and updates the first
+	one. */
+	template <::size_t N>
+	void Multiply(std::array<double, N> &a, const std::array<double, N> &b);
+
+	/** A *= B */
+	template <::size_t N>
+	std::array<double, N> &operator*=(std::array<double, N> &a,
+		const std::array<double, N> &b);
 
 	template <typename T, ::size_t N>
 	void Divide(const std::array<T, N> &a, double b, std::array<double, N> &c);

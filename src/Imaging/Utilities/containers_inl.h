@@ -58,6 +58,20 @@ namespace Imaging
 		return c;
 	}
 
+	template <typename T, ::size_t N>
+	void Add(std::array<T, N> &a, const T &b)
+	{
+		for (auto &elem: a)
+			elem = SafeAdd(elem, b);
+	}
+
+	template <typename T, ::size_t N>
+	std::array<T, N> &operator+=(std::array<T, N> &a, const T &b)
+	{
+		Add(a, b);
+		return a;
+	}
+
 	template <typename T, typename U, ::size_t N>
 	typename std::enable_if<std::is_floating_point<T>::value, void>::type
 		RoundAs(const std::array<T, N> &src, std::array<U, N> &dst)
@@ -100,6 +114,22 @@ namespace Imaging
 		Multiply(a, b, c);
 		return c;
 	}
+
+	template <::size_t N>
+	void Multiply(std::array<double, N> &a, double b)
+	{
+		for (auto &elem: a)
+			elem *= b;
+	}
+
+	template <::size_t N>
+	std::array<double, N> &operator*=(std::array<double, N> &a, double b)
+	{
+		Multiply(a, b);
+		return a;
+	}
+
+	// TODO !!!
 
 	template <typename T, ::size_t N>
 	void Divide(const std::array<T, N> &a, double b, std::array<double, N> &c)
