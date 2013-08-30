@@ -37,8 +37,8 @@ namespace Imaging
 
 	This function template is enabled for only the cases when implicit casting is possible
 	without data loss or integer overflow risk.
-	It can be used as an implicit casting method as well as a copying method. */
-	/** Compiler gives a warning against int -> float, so it is disabled by enforcing
+	It can be used as an implicit casting method as well as a copying method.
+	@NOTE Compiler gives a warning against int -> float, so it is disabled by enforcing
 	src < dst in case 1.
 	Since only implicitly allowed conversion is enabled, there is no need to use a safe
 	casting method. */
@@ -58,7 +58,9 @@ namespace Imaging
 		std::copy(src.cbegin(), src.cend(), dst.begin());
 	}
 
-	/** Adds two std::array<T, N> objects of the same data type and length into another
+	/** C = A + B
+	
+	Adds two std::array<T, N> objects of the same data type and length into another
 	std::array<U, N> object of the same data type
 	
 	@exception std::overflow_error	if the result of any element is below or beyond the
@@ -66,17 +68,33 @@ namespace Imaging
 	template <typename T, ::size_t N>
 	void Add(const std::array<T, N> &a, const std::array<T, N> &b, std::array<T, N> &c);
 
-	/** Adds two std::array<T, N> objects of the same data type and length into another
+	/** C = A + B
+	
+	Adds two std::array<T, N> objects of the same data type and length into another
 	std::array<T, N> object of the same data type.
 
-	@NOTE This operator can be practically used only within the namespace because we cannot
+	@NOTE This operator can be practically used only within this namespace because we cannot
 	use '+' without "using namespace Imaging". (Maybe it is better that way.)
 	Another way is 'c = Imaging::operator+(a, b)', but function Add(a, b, c) is better in
 	that way. */
 	template <typename T, ::size_t N>
 	std::array<T, N> operator+(const std::array<T, N> &a, const std::array<T, N> &b);
 
-	/** Adds a scalar value into all elements of an std::array<T, N> object of the same data
+	/** A += B
+
+	Adds two std::array<T, N> objects of the same data type and length and update oen of the
+	source object. */
+	template <typename T, ::size_t N>
+	void Add(std::array<T, N> &a, const std::array<T, N> &b);
+
+	/** A += B
+	*/
+	template <typename T, ::size_t N>
+	std::array<T, N> &operator+=(std::array<T, N> &a, const std::array<T, N> &b);
+
+	/** C = A + b
+	
+	Adds a scalar value into all elements of an std::array<T, N> object of the same data
 	type.
 	
 	@exception std::overflow_error	if the result of any element is below or beyond the
@@ -84,8 +102,12 @@ namespace Imaging
 	template <typename T, ::size_t N>
 	void Add(const std::array<T, N> &a, const T &b, std::array<T, N> &c);
 
+	// C = A + b
 	template <typename T, ::size_t N>
 	std::array<T, N> operator+(const std::array<T, N> &a, const T &b);
+
+	// TODO!!!
+	// A += b
 
 	/** Rounds off an std::array<T, N> from floating point data type to a given data type.
 		

@@ -51,13 +51,7 @@ namespace Imaging
 		(std::is_signed<U>::value && std::is_signed<T>::value && sizeof(U) > sizeof(T))) &&
 		!((sizeof(U) > sizeof(T)) ||
 		(std::is_unsigned<U>::value && std::is_signed<T>::value && sizeof(U) == sizeof(T)))),
-		T>::type SafeCast(U src)
-	{
-		if (src < static_cast<U>(std::numeric_limits<T>::min()))
-			throw std::overflow_error("Source value is too low.");
-		else
-			return static_cast<T>(src);
-	}
+		T>::type SafeCast(U src);
 
 	// 2. Positive risk only. (~A & B)
 	template <typename T, typename U>
@@ -66,13 +60,7 @@ namespace Imaging
 		(std::is_signed<U>::value && std::is_signed<T>::value && sizeof(U) > sizeof(T))) &&
 		((sizeof(U) > sizeof(T)) ||
 		(std::is_unsigned<U>::value && std::is_signed<T>::value && sizeof(U) == sizeof(T)))),
-		T>::type SafeCast(U src)
-	{
-		if (src > static_cast<U>(std::numeric_limits<T>::max()))
-			throw std::overflow_error("Source value is too high.");
-		else
-			return static_cast<T>(src);
-	}
+		T>::type SafeCast(U src);
 
 	// 3. Both negative and positive risks. (A & B)
 	template <typename T, typename U>
@@ -81,28 +69,20 @@ namespace Imaging
 		(std::is_signed<U>::value && std::is_signed<T>::value && sizeof(U) > sizeof(T))) &&
 		((sizeof(U) > sizeof(T)) ||
 		(std::is_unsigned<U>::value && std::is_signed<T>::value && sizeof(U) == sizeof(T)))),
-		T>::type SafeCast(U src)
-	{
-		if (src < static_cast<U>(std::numeric_limits<T>::min()))
-			throw std::overflow_error("Source value is too low.");
-		else if (src > static_cast<U>(std::numeric_limits<T>::max()))
-			throw std::overflow_error("Source value is too high.");
-		else
-			return static_cast<T>(src);
-	}
+		T>::type SafeCast(U src);
 
 	// 4. No risk. (~A & ~B)
 	// Since there is no risk of integer overflow, implicit conversion is sufficient.
-	//template <typename T, typename U>
-	//typename std::enable_if<(std::is_integral<T>::value && std::is_integral<U>::value) &&
-	//	(!((std::is_signed<U>::value && std::is_unsigned<T>::value) ||
-	//	(std::is_signed<U>::value && std::is_signed<T>::value && sizeof(U) > sizeof(T))) &&
-	//	!((sizeof(U) > sizeof(T)) ||
-	//	(std::is_unsigned<U>::value && std::is_signed<T>::value && sizeof(U) == sizeof(T)))),
-	//	T>::type SafeCast(U src)
-	//{
-	//	return src;
-	//}
+	template <typename T, typename U>
+	typename std::enable_if<(std::is_integral<T>::value && std::is_integral<U>::value) &&
+		(!((std::is_signed<U>::value && std::is_unsigned<T>::value) ||
+		(std::is_signed<U>::value && std::is_signed<T>::value && sizeof(U) > sizeof(T))) &&
+		!((sizeof(U) > sizeof(T)) ||
+		(std::is_unsigned<U>::value && std::is_signed<T>::value && sizeof(U) == sizeof(T)))),
+		T>::type SafeCast(U src)
+	{
+		return src;
+	}
 
 	/** Casting floating point types to integral types with real-time integer overflow
 	checking
@@ -114,33 +94,22 @@ namespace Imaging
 	conversion, i.e., static_cast<T>. */
 	template <typename T, typename U>
 	typename std::enable_if<std::is_floating_point<U>::value && std::is_integral<T>::value,
-		T>::type SafeCast(U src)
-	{
-		if (static_cast<U>(std::numeric_limits<T>::max()) < src)
-			throw std::overflow_error("Source value is too high.");
-		else if (static_cast<U>(std::numeric_limits<T>::min()) > src)
-			throw std::overflow_error("Source value is too low.");
-		else
-			return static_cast<T>(src);
-	}
+		T>::type SafeCast(U src);
 
 	/** narrowing conversion from floating point to floating point with integer (?) overflow
 	check
 
-	std::numeric_limits<T>::min() for floating point data types return the minimum precision
-	value instead of the negative minimum value. */
+	Overflow could happen as well as data precision loss from double to float.
+	
+	@exception std::overflow_error	if source value is beyond the range of destination data
+	type
+
+	The compiler warning messages for data precision loss are silenced by explicit
+	conversion, i.e., static_cast<T>.*/
 	template <typename T, typename U>
 	typename std::enable_if<std::is_floating_point<U>::value &&
 		std::is_floating_point<T>::value && (sizeof(U) > sizeof(T)),
-		T>::type SafeCast(U src)
-	{
-		if (static_cast<U>(std::numeric_limits<T>::max()) < src)
-			throw std::overflow_error("Source value is too high.");
-		else if (static_cast<U>(-std::numeric_limits<T>::max()) > src)
-			throw std::overflow_error("Source value is too low.");
-		else
-			return static_cast<T>(src);
-	}
+		T>::type SafeCast(U src);
 
 
 	/** Safe round off operation from floating point to integral types.
@@ -149,17 +118,7 @@ namespace Imaging
 	type */
 	template <typename T, typename U>
 	typename std::enable_if<std::is_floating_point<U>::value && std::is_integral<T>::value,
-		T>::type RoundAs(U src)
-	{
-#if _MSC_VER > 1700	// from C+11
-		return SafeCast<T>(std::round(src));
-#else				// up to VS2012
-		if (src >= 0)
-			return SafeCast<T>(std::floor(src + 0.5));
-		else
-			return SafeCast<T>(std::ceil(src - 0.5));
-#endif
-	}
+		T>::type RoundAs(U src);
 
 	////////////////////////////////////////////////////////////////////////////////////////
 	/** Detecting integer overflow from arithmetic (add) operations

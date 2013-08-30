@@ -28,6 +28,21 @@ namespace Imaging
 	}
 
 	template <typename T, ::size_t N>
+	void Add(std::array<T, N> &a, const std::array<T, N> &b)
+	{
+		auto it_b = b.cbegin();
+		for (auto it_a = a.begin(), it_a_end = a.end(); it_a != it_a_end; ++it_a, it_b)
+			*it_a = SafeAdd(*it_a, *it_b);
+	}
+
+	template <typename T, ::size_t N>
+	std::array<T, N> &operator+=(std::array<T, N> &a, const std::array<T, N> &b)
+	{
+		Add(a, b);
+		return a;
+	}
+
+	template <typename T, ::size_t N>
 	void Add(const std::array<T, N> &a, const T &b, std::array<T, N> &c)
 	{
 		auto it_c = c.begin(), it_c_end = c.end();
