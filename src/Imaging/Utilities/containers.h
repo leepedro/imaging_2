@@ -53,10 +53,33 @@ namespace Imaging
 		sizeof(T) <= sizeof(U)) ||
 		(std::is_integral<T>::value && std::is_integral<U>::value &&
 		std::is_unsigned<T>::value && std::is_signed<U>::value && sizeof(T) < sizeof(U)), void>::type
-	Copy(const std::array<T, N> &src, std::array<U, N> &dst)
+		Copy(const std::array<T, N> &src, std::array<U, N> &dst)
 	{
 		std::copy(src.cbegin(), src.cend(), dst.begin());
 	}
+
+	/** C = -A
+	
+	Negate an std::array<T, N> object for integral data types, and returns the result while
+	checking integer overflow.
+
+	@exception std::overflow_error	if the result of any element is below or beyond the
+	range of the data type	*/
+	template <typename T, ::size_t N>
+	typename std::enable_if<std::is_integral<T>::value && std::is_signed<T>::value, void>::type
+		Negate(const std::array<T, N> &a, std::array<T, N> &b);
+
+	/** C = -A
+
+	Negate an std::array<T, N> object for floating point data types, and returns the result.
+	*/
+	template <typename T, ::size_t N>
+	typename std::enable_if<std::is_floating_point<T>::value, void>::type
+		Negate(const std::array<T, N> &a, std::array<T, N> &b);
+
+	/** C = -A */
+	template <typename T, ::size_t N>
+	std::array<T, N> operator-(const std::array<T, N> &a);
 
 	/** C = A + B
 	
@@ -161,7 +184,6 @@ namespace Imaging
 	template <::size_t N>
 	std::array<double, N> &operator*=(std::array<double, N> &a, double b);
 
-	// TODO !!!
 	/** A *= B
 
 	Multiplies two std::array<double, N> objects with the same length, and updates the first
@@ -174,11 +196,32 @@ namespace Imaging
 	std::array<double, N> &operator*=(std::array<double, N> &a,
 		const std::array<double, N> &b);
 
+	/** C = A / b */
 	template <typename T, ::size_t N>
 	void Divide(const std::array<T, N> &a, double b, std::array<double, N> &c);
 
+	/** C = A / b */
 	template <typename T, ::size_t N>
 	std::array<double, N> operator/(const std::array<T, N> &a, double b);
+
+	/** A /= b
+
+	Divides an std::array<double, N> with a scalar, and updates it.*/
+	template <::size_t N>
+	void Divide(std::array<double, N> &a, double b);
+
+	/** A /= b */
+	template <::size_t N>
+	std::array<double, N> &operator/=(std::array<double, N> &a, double b);
+
+	/** A /= B */
+	template <::size_t N>
+	void Divide(std::array<double, N> &a, const std::array<double, N> &b);
+
+	/** A /= B */
+	template <::size_t N>
+	std::array<double, N> &operator/=(std::array<double, N> &a,
+		const std::array<double, N> &b);
 
 	/** Get p-norm of an std::<T, N> array.	
 
@@ -195,7 +238,14 @@ namespace Imaging
 	@param [in] p	The order of the norm. Default = 2. Euclidean distance is a 2-norm.
 	@return The normalized vector as an std::array<double, N> object. */
 	template <typename T, ::size_t N>
-	std::array<double, N> Normalize(const std::array<T, N> &src, double p = 2.0);
+	std::array<double, N> GetNormedVector(const std::array<T, N> &src, double p = 2.0);
+
+	/** Normalizes an std::array<double, N> object, and updates it.
+	
+	@param [in] p	The order of the norm. Default = 2. Euclidean distance is a 2-norm.
+	*/
+	template <::size_t N>
+	void Normalize(std::array<double, N> &src, double p = 2.0);
 
 	////////////////////////////////////////////////////////////////////////////////////////
 	// Global functions and operators for std::vector<T> class.

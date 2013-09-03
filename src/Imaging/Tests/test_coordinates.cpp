@@ -9,12 +9,16 @@ void TestPoint2D(void)
 {
 	// Point2D<T>
 	using namespace Imaging;	
-	Point2D<int> pt1, pt2(1, 2);
-	pt1 = pt2;
-	Point2D<int> pt3 = pt2;
+	Point2D<int> pt1;		// Default constructor
+	Point2D<int> pt2(1, 2);	// Custom constructor
+	pt1 = pt2;				// copy assignment operator or copy constructor + unified assignment
+	Point2D<int> pt3 = pt2;	// copy constructor
 
 	if (pt3 != pt2)
 		throw std::logic_error("Point2D<T>");
+	int x1 = pt2.x, y1 = pt2.y, x2 = pt3.x, y2 = pt3.y;
+
+	pt3 = Point2D<int>(3, 3);	// custom constructor + move assignment operator
 }
 
 void TestPoint3D(void)

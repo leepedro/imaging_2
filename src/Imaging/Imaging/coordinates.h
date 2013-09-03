@@ -1,7 +1,7 @@
 #if !defined(COORDINATES_H)
 #define COORDINATES_H
 
-#include <array>
+//#include <array>
 
 #include "../Utilities/containers.h"
 
@@ -9,11 +9,11 @@ namespace Imaging
 {
 	/** The classes defined in this file are aliases of std::array<T, N>.
 	They have references indicating each element of the array such as x, y, width, height,
-	but they should not have any member variables.
+	but they MUST NOT have any member variables.
 	If it does, the member variable will be discarded by the operators or methods defined
 	for std::array<T, N>. */
 	/* Since std::array<T, N> class does not have move constructor, the inherited classes
-	shall not have a move constructor. */
+	shall not have a move constructor. Really? */
 
 	/** Presents a 2-D Cartesian coordinate as (x, y). */
 	template <typename T>
@@ -24,7 +24,8 @@ namespace Imaging
 		// Default constructors.
 		Point2D(void);
 		Point2D(const Point2D<T> &src);
-		Point2D<T> &operator=(const Point2D<T> &src);
+		Point2D(Point2D<T> &&src);
+		Point2D<T> &operator=(Point2D<T> src);
 
 		////////////////////////////////////////////////////////////////////////////////////
 		// Custom constructors.
@@ -44,6 +45,9 @@ namespace Imaging
 		// Accessor.
 		T &x, &y;
 	};
+
+	// TODO: Implement move constructor and unifying assignment operator for all classes
+	// below this point.
 
 	/** Presents a 3-D Cartesian coordinate as (x, y, z). */
 	template <typename T>
@@ -125,7 +129,8 @@ namespace Imaging
 		// Default constructors.
 		Region(void);
 		Region(const Region<T, U> &src);
-		Region &operator=(const Region<T, U> &src);
+		Region(Region<T, U> &&src);
+		Region &operator=(Region<T, U> src);
 
 		////////////////////////////////////////////////////////////////////////////////////
 		// Custom constructors.
@@ -162,6 +167,9 @@ namespace Imaging
 		// Data.
 		Point2D<T> origin;
 		Size2D<U> size;
+
+	protected:
+		void Swap(Region <T, U> &region);
 	};
 }
 

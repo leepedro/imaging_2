@@ -8,6 +8,37 @@ namespace Imaging
 	////////////////////////////////////////////////////////////////////////////////////////
 	// Global functions and operators for std::array<T, N> class.
 
+	// Enables this function for only signed integral data types to use safe negating function.
+	template <typename T, ::size_t N>
+	typename std::enable_if<std::is_integral<T>::value && std::is_signed<T>::value, void>::type
+		Negate(const std::array<T, N> &a, std::array<T, N> &b)
+	{
+		auto it_b = b.begin();
+		for (auto it_a = a.cbegin(), it_a_end = a.cend(); it_a != it_a_end; ++it_a, ++it_b)
+			*it_b = SafeNegate(*it_a);
+	}
+
+	/** Enables this function for only floating point data types assuming it does not need
+	safe negating function. */
+	template <typename T, ::size_t N>
+	typename std::enable_if<std::is_floating_point<T>::value, void>::type
+		Negate(const std::array<T, N> &a, std::array<T, N> &b)
+	{
+		auto it_b = b.begin();
+		for (auto it_a = a.cbegin(), it_a_end = a.cend(); it_a != it_a_end; ++it_a, ++it_b)
+			*it_b = -*it_a;
+	}
+
+	/** This function is enabled for both signed integral types and floating point types, but
+	not enabled for other data types. */
+	template <typename T, ::size_t N>
+	std::array<T, N> operator-(const std::array<T, N> &a)
+	{
+		std::array<T, N> b;
+		Negate(a, b);
+		return b;
+	}
+
 	/** If any operation produces an integer overflow, SafeAdd() function will throw an
 	exception. */
 	template <typename T, ::size_t N>
@@ -129,7 +160,21 @@ namespace Imaging
 		return a;
 	}
 
-	// TODO !!!
+	template <::size_t N>
+	void Multiply(std::array<double, N> &a, const std::array<double, N> &b)
+	{
+		auto it_b = b.cbegin();
+		for (auto it = a.begin(), it_end = a.end(); it != it_end; ++it, ++it_b)
+			*it *= *it_b;
+	}
+
+	template <::size_t N>
+	std::array<double, N> &operator*=(std::array<double, N> &a,
+		const std::array<double, N> &b)
+	{
+		Multiply(a, b);
+		return a;
+	}
 
 	template <typename T, ::size_t N>
 	void Divide(const std::array<T, N> &a, double b, std::array<double, N> &c)
@@ -145,6 +190,35 @@ namespace Imaging
 		return c;
 	}
 
+	template <::size_t N>
+	void Divide(std::array<double, N> &a, double b)
+	{
+		Multiply(a, 1.0 / b);
+	}
+
+	template <::size_t N>
+	std::array<double, N> &operator/=(std::array<double, N> &a, double b)
+	{
+		Divide(a, b);
+		return a;
+	}
+
+	template <::size_t N>
+	void Divide(std::array<double, N> &a, const std::array<double, N> &b)
+	{
+		auto it_b = b.cbegin();
+		for (auto it = a.begin(), it_end = a.end(); it != it_end; ++it, ++it_b)
+			*it /= *it_b;
+	}
+
+	template <::size_t N>
+	std::array<double, N> &operator/=(std::array<double, N> &a,
+		const std::array<double, N> &b)
+	{
+		Divide(a, b);
+		return a;
+	}
+
 	template <typename T, ::size_t N>
 	double GetNorm(const std::array<T, N> &src, double p)
 	{
@@ -155,10 +229,17 @@ namespace Imaging
 	}
 
 	template <typename T, ::size_t N>
-	std::array<double, N> Normalize(const std::array<T, N> &src, double p)
+	std::array<double, N> GetNormedVector(const std::array<T, N> &src, double p)
 	{
 		double norm = GetNorm(src, p);
 		return src / norm;
+	}
+
+	template <::size_t N>
+	void Normalize(std::array<double, N> &src, double p)
+	{
+		double norm = GetNorm(src, p);
+		src /= norm;
 	}
 
 	////////////////////////////////////////////////////////////////////////////////////////
@@ -180,21 +261,25 @@ namespace Imaging
 		}
 	}
 
-#if defined(WIN32)
-	// Implemented stdext::checked_array_iterator<> class to bypass C4996 warning.
+
+	/** Implemented stdext::checked_array_iterator<> class for Visual Studio to bypass C4996
+	warning. */
 	template <typename T>
 	void CopyLines(typename std::vector<T>::const_iterator it_src, ::size_t nElemPerLineSrc,
 		T *dst, ::size_t nElemPerLineDst, ::size_t nElemWidth, ::size_t nLines)
 	{
 		for (auto H = 0; H != nLines; ++H)
 		{
+#if defined(WIN32)
 			std::copy(it_src, it_src + nElemWidth,
 				stdext::checked_array_iterator<T *>(dst, nElemPerLineDst));
+#else
+			std::copy(it_src, it_src + nElemWidth, dst);
+#endif
 			it_src += nElemPerLineSrc;
 			dst += nElemPerLineDst;
 		}
 	}
-#endif
-
 }
+
 #endif

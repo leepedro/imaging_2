@@ -10,9 +10,9 @@ int main(void)
 	try
 	{
 		TestUtilities();
-		//TestCoordinates();
+		TestCoordinates();
 		//TestImage();
-		//TestImageFrame();
+		TestImageFrames();
 	}
 	catch (const std::exception &ex)
 	{

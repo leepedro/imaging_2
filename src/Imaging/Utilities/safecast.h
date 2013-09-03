@@ -3,7 +3,9 @@
 ////////////////////////////////////////////////////////////////////////////////////////
 // Global functions and operators for safe casting and conversion.
 
-#include <algorithm>
+//#include <algorithm>
+#include <limits>
+#include <type_traits>
 
 namespace Imaging
 {
@@ -111,7 +113,6 @@ namespace Imaging
 		std::is_floating_point<T>::value && (sizeof(U) > sizeof(T)),
 		T>::type SafeCast(U src);
 
-
 	/** Safe round off operation from floating point to integral types.
 
 	@exception std::overflow_error	if source value is beyond the range of destination data
@@ -119,6 +120,18 @@ namespace Imaging
 	template <typename T, typename U>
 	typename std::enable_if<std::is_floating_point<U>::value && std::is_integral<T>::value,
 		T>::type RoundAs(U src);
+
+	/** Negates signed integral value while checking the source value value.
+
+	The minimum value of signed integral values is one step further than the maximum value.
+	For example, the minimum value of char is -128 while maximum value is 127.
+
+	@exception std::overflow_error	if source value is the minimum negative value of the
+	data type
+	*/
+	template <typename T>
+	typename std::enable_if<std::is_integral<T>::value && std::is_signed<T>::value, T>::type
+		SafeNegate(T a);
 
 	////////////////////////////////////////////////////////////////////////////////////////
 	/** Detecting integer overflow from arithmetic (add) operations
@@ -162,6 +175,7 @@ namespace Imaging
 	template <typename T>
 	typename std::enable_if<std::is_arithmetic<T>::value, T>::type
 		SafeAdd(T a, T b);
+
 }
 
 #include "safecast_inl.h"

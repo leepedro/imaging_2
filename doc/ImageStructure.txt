@@ -70,3 +70,12 @@ Q. What about multiple measurements of multi-spectral images?
 It should be reconstructed as an array of structures where frames presents time, so each data
 set is designated for each band.
 In other words, frames should present bands only if the data is a single-measurement.
+
+depth: number of channels per pixel
+width: number of pixel per line
+height: number of line per frame
+length: number of frames per block
+c: position of a channel at given pixel; [0 ~ depth)
+x: position of a pixel at given line; [0 ~ width)
+y: position of a line at given frame; [0 ~ height)
+f: position of a frame at given block; [0 ~ length)

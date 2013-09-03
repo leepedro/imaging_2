@@ -109,6 +109,16 @@ namespace Imaging
 			throw std::overflow_error("Result value is too low.");
 		return a + b;
 	}
+
+	template <typename T>
+	typename std::enable_if<std::is_integral<T>::value && std::is_signed<T>::value, T>::type
+		SafeNegate(T a)
+	{
+		if (a == std::numeric_limits<T>::min())
+			throw std::overflow_error("Result value is too high.");
+		else
+			return -a;
+	}
 }
 
 #endif

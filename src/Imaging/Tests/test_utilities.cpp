@@ -162,13 +162,28 @@ void TestStdArrayAdd(const std::array<T, N> &a, const std::array<T, N> &b,
 
 void TestStdArray(void)
 {
+	using namespace Imaging;
 	std::cout << "Test for safe arithmetic operation for std::array<T, N> started."
 		<< std::endl;
 
 	int i_max = std::numeric_limits<int>::max();
 	int i_min = std::numeric_limits<int>::min();
 	std::array<int, 3> i1 = {0, 1, 2}, i2 = {i_max, i_max, i_max}, i3, i0;
-	std::array<int, 3> i4 = {0, -1, -2}, i5 = {i_min, i_min, i_min}, i6;
+	std::array<int, 3> i4 = {0, -1, -2}, i5 = {i_min, i_min, i_min}, i6;	
+	
+	try
+	{
+		i6 = -i1;	// Good!
+		i6 = -i5;	// Overflow!!!
+	}
+	catch (const std::overflow_error &)
+	{
+		std::cout << "Overflowed!" << std::endl;
+	}
+	catch (...)
+	{
+		std::cout << "Unexpected error" << std::endl;
+	}
 
 	TestStdArrayAdd(i1, i4, i0);
 
@@ -181,36 +196,47 @@ void TestStdArray(void)
 	std::cout << std::endl;
 	std::cout << "positive integer overflow risk" << std::endl;
 	TestStdArrayAdd(i1, i2, i3);
+		
+	Add(i4, 2);
+	i4 += 2;
 
-	{
-		using namespace Imaging;
-		Add(i4, 2);
-		i4 += 2;
-	}
 	// Round off
 	std::array<double, 3> d1 = {0.4, 0.5, 0.6}, d2, d3, d4;
-	Imaging::Add(d1, 1.0, d2);
-	Imaging::Add(d1, 2.0, d3);
-	Imaging::Add(d1, d3, d4);
-	Imaging::RoundAs(d2, i2);
-	Imaging::RoundAs(d3, i3);
+	Add(d1, 1.0, d2);
+	Add(d1, 2.0, d3);
+	Add(d1, d3, d4);
+	RoundAs(d2, i2);
+	RoundAs(d3, i3);
 
 	// Multiplication
-	Imaging::Multiply(i1, 2.0, d1);
-	d2 = Imaging::operator*(i1, 2.0);
+	Multiply(i1, 2.0, d1);
+	d2 = i1 * 2.0;
+	//d2 = Imaging::operator*(i1, 2.0);
 	if (d1 == d2)
 		std::cout << "Multiplying an array with a scalar was successful." << std::endl;
 	else
 		std::cout << "Multiplying an array with a scalar was NOT successful." << std::endl;
-	Imaging::Multiply(i1, d1, d3);
-	d4 = Imaging::operator*(i1, d1);
+	Multiply(i1, d1, d3);
+	d4 = i1 * d1;
+	//d4 = Imaging::operator*(i1, d1);
 	if (d3 == d4)
 		std::cout << "Multiplying an array with another array was successful." << std::endl;
 	else
 		std::cout << "Multiplying an array with another array was NOT successful." << std::endl;
 
+	Multiply(d1, 2.0);
+	d1 *= 2.0;
+	Multiply(d1, d2);
+	d1 *= d2;
+
 	// Normalization
-	d1 = Imaging::Normalize(i1);
+	d1 = Imaging::GetNormedVector(i1);
+	Copy(i1, d2);
+	Normalize(d2);
+	if (d1 == d2)
+		std::cout << "Normalization was successful." << std::endl;
+	else
+		std::cout << "Normalization was NOT successful." << std::endl;
 
 	std::cout << "Test for safe arithmetic operation for std::array<T, N> has been completed."
 		<< std::endl;
