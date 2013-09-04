@@ -14,7 +14,7 @@ void TestImageFrame(::size_t width, ::size_t height, ::size_t depth = 1)
 
 	ImageFrame<T> img1(width, height, depth);	// custom constructor
 	ImageFrame<T> img2;	// default constructor
-	img2 = img1;	// copy constructor + unifying assignment
+	img2 = img1;	// copy constructor + unifying assignment (for copy)
 	ImageFrame<T> img3 = img1;	// copy constructor
 
 	if (img2.size != img1.size)
@@ -22,8 +22,9 @@ void TestImageFrame(::size_t width, ::size_t height, ::size_t depth = 1)
 	if (img3.size != img1.size)
 		throw std::logic_error("ImageFrame<T>");
 
-	img3 = ImageFrame<T>(width, height, depth);	// unifying assignment for moving
+	img3 = ImageFrame<T>(width, height, depth);	// custom constructor + unifying assignment (for moving)
 	ImageFrame<T> img4 = std::move(img2);	// move constructor
+	img4 = std::move(img3);	// move constructor + unifying assignment (for move)
 
 	try
 	{
