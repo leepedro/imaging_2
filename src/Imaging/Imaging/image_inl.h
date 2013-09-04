@@ -106,6 +106,28 @@ namespace Imaging
 	////////////////////////////////////////////////////////////////////////////////////////
 	// Methods.
 
+	template <typename T>
+	void ImageFrame<T>::CopyFrom(const ImageFrame<T> &imgSrc,
+			const Region<typename ImageFrame<T>::SizeType, typename ImageFrame<T>::SizeType> &roiSrc,
+			const Point2D<typename ImageFrame<T>::SizeType> &orgnDst)
+	{
+		// Check the depth of both images.
+		this->CheckDepth(imgSrc.depth);
+
+		// Check source/destination ROI.
+		imgSrc.CheckRange(roiSrc);	// TODO: Change CheckRange() into protected, and try again.
+		this->CheckRange(orgnDst, roiSrc.size);
+
+		// TODO: ...
+	}
+	
+	template <typename T>
+	void ImageFrame<T>::CheckDepth(SizeType c) const
+	{
+		if (this->size.depth != c)
+			throw std::runtime_error("Depth is not matched.");
+	}
+
 	/** Throws an exception instead of returning false because you have to throw an
 	exception at a higher level any way. */
 	template <typename T>
@@ -128,6 +150,27 @@ namespace Imaging
 			errMsg << "Position (" << x << ", " << y << ") is out of range.";
 			throw std::out_of_range(errMsg.str());
 		}
+	}
+
+	// The end points are the excluding end of an ROI, so it could be up to (width, height).
+	template <typename T>
+	void ImageFrame<T>::CheckRange(const Point2D<SizeType> &orgn, const Size2D<SizeType> &sz) const
+	{
+		Point2D<SizeType> ptEnd = orgn + sz;
+		if (orgn.x < 0 || ptEnd.x > this->size.width || orgn.y < 0 ||
+			ptEnd.y > this->size.height)
+		{
+			std::ostringstream errMsg;
+			errMsg << "[" << orgn.x << ", " << orgn.y << "] ~ (" << ptEnd.x << ", " <<
+				ptEnd.y << ") is out of range.";
+			throw std::out_of_range(errMsg.str());
+		}
+	}
+
+	template <typename T>
+	void ImageFrame<T>::CheckRange(const Region<SizeType, SizeType> &roi) const
+	{
+		this->CheckRange(roi.origin, roi.size);
 	}
 
 	template <typename T>

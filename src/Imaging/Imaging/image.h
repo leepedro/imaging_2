@@ -68,12 +68,17 @@ namespace Imaging
 
 		//////////////////////////////////////////////////
 		// Methods.
+		void CopyFrom(const ImageFrame<T> &imgSrc,
+			const Region<SizeType, SizeType> &roiSrc, const Point2D<SizeType> &orgnDst);
 		void Clear(void);
 		void Resize(const Size2D<SizeType> &sz, SizeType d = 1);
 		void Resize(SizeType w, SizeType h, SizeType d = 1);
 
+		void CheckDepth(SizeType c) const;	// move to protedted?
 		void CheckRange(SizeType c) const;	// move to protedted?
 		void CheckRange(SizeType x, SizeType y) const;	// move to protedted?
+		void CheckRange(const Point2D<SizeType> &orgn, const Size2D<SizeType> &sz) const;
+		void CheckRange(const Region<SizeType, SizeType> &roi) const;
 
 	protected:
 		//////////////////////////////////////////////////
