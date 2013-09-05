@@ -108,23 +108,95 @@ namespace Imaging
 
 	template <typename T>
 	void ImageFrame<T>::CopyFrom(const ImageFrame<T> &imgSrc,
-			const Region<typename ImageFrame<T>::SizeType, typename ImageFrame<T>::SizeType> &roiSrc,
-			const Point2D<typename ImageFrame<T>::SizeType> &orgnDst)
+		const Region<typename ImageFrame<T>::SizeType, typename ImageFrame<T>::SizeType> &roiSrc,
+		const Point2D<typename ImageFrame<T>::SizeType> &orgnDst)
 	{
 		// Check the depth of both images.
 		this->CheckDepth(imgSrc.depth);
-
+		
 		// Check source/destination ROI.
 		imgSrc.CheckRange(roiSrc);	// TODO: Change CheckRange() into protected, and try again.
 		this->CheckRange(orgnDst, roiSrc.size);
 
-		// TODO: ...
+		// Copy line by line.
+		auto it_src = imgSrc.GetIterator(roiSrc.origin.x, roiSrc.origin.y);
+		auto it_dst = this->GetIterator(orgnDst.x, orgnDst.y);
+		CopyLines<T>(it_src, imgSrc.depth * imgSrc.size.width, it_dst,
+			this->depth * this->size.width, this->depth * roiSrc.size.width,
+			roiSrc.size.height);
+	}
+
+	template <typename T>
+	void ImageFrame<T>::CopyFrom(const T *src,
+		const Size2D<typename ImageFrame<T>::SizeType> &sz,
+		typename ImageFrame<T>::SizeType depth, ::size_t bytesPerLine,
+		RawImageFormat fmt)
+	{
+		if (bytesPerLine == sz.width * sizeof(T))	// no zero padding
+			;
+		else// with zero padding
+		{
+			// Reset destination image for given dimension.
+			this->resize(sz, depth);
+
+			::size_t nElemPerLine = bytesPerLine / sizeof(T);	// ?
+			switch (fmt)
+			{
+			case Imaging::RawImageFormat::BIP:
+				{
+					auto it_dst = this->GetIterator(0, 0);
+					CopyLines<T>(src, nElemPerLine, it_dst,
+						this->depth * this->size.width, depth * sz.width,
+						sz.height);
+				}
+				break;
+			case Imaging::RawImageFormat::BSQ:
+				//for (auto C = 0; C != depth; ++C)
+				//{
+				//	auto it_dst = this->GetIterator(0, 0, C);
+				//	CopyLines<T>(src + nElemPerLine * sz.height * C, nElemPerLine, it_dst,
+				//		this->size.width, sz.width, sz.height);
+				//}
+				break;
+			//case Imaging::RawImageFormat::BIL:
+			//	{
+			//		auto it_dst = imgDst.GetIterator(0, 0);
+			//		CopyLines<T>(src, nElemWidthSrc, it_dst, imgDst.size.width,
+			//			sz.width, depth * sz.height);
+			//	}
+			//	break;
+			default:
+				std::ostringstream errMsg;
+				errMsg << "Raw image format " << static_cast<int>(fmt) <<
+					" is not supported.";
+				throw std::logic_error(errMsg.str());
+			}
+
+		}
+	}
+
+	template <typename T>
+	void ImageFrame<T>::CopyTo(const Region<SizeType, SizeType> &roiSrc,
+		ImageFrame<T> &imgDst) const
+	{
+		// Reset destination image for given dimension.
+		imgDst.resize(roiSrc.size.width, roiSrc.size.height, this->depth);
+
+		// Check source/destination ROI.
+		this->CheckRange(roiSrc);
+
+		// Copy line by line.
+		auto it_src = this->GetIterator(roiSrc.origin.x, roiSrc.origin.y);
+		auto it_dst = imgDst.GetIterator(0, 0);
+		CopyLines<T>(it_src, this->depth * this->size.width, it_dst,
+			imgDst.depth * imgDst.size.width, this->depth * roiSrc.size.width,
+			roiSrc.size.height);
 	}
 	
 	template <typename T>
 	void ImageFrame<T>::CheckDepth(SizeType c) const
 	{
-		if (this->size.depth != c)
+		if (this->depth != c)
 			throw std::runtime_error("Depth is not matched.");
 	}
 

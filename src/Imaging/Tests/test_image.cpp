@@ -74,5 +74,20 @@ void TestImageFrames(void)
 	TestImageFrame<unsigned char>(32, 16, 3);
 	TestImageFrame<int>(32, 16);
 
+	try
+	{
+		ImageFrame<unsigned char> img1(32, 28, 1), img2(16, 16, 1);
+		Region<::size_t, ::size_t> roi1(1, 1, 3, 2);
+		img1.CopyFrom(img2, roi1, Point2D<::size_t>(1, 1));
+	}
+	catch (const std::exception &e)
+	{
+		std::cout << e.what() << std::endl;
+	}
+	catch (...)
+	{
+		std::cout << "Unknown error" << std::endl;
+	}
+
 	std::cout << std::endl << "Test for image.h has been completed." << std::endl;
 }

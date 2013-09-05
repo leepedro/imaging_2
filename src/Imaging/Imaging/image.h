@@ -7,6 +7,19 @@
 
 namespace Imaging
 {
+	/** Presents image format by how the data is stored.
+	
+	BIP: band-interleaved by pixel or pixel interleaved, e.g., most of RGB bitmap images
+	Data is stored as channel -> column -> row.
+	BSQ: band-sequential or band interleaved, e.g., planar RGB images, time-sequenced image
+	frames
+	Data is stored as column -> row -> channel.
+	BIL: band-interleaved by line or row interleaved, e.g., hyper-spectral images with a
+	line sensor
+	Data is stored as column -> channel -> row.
+	*/
+	enum class RawImageFormat {UNKNOWN, BIP, BSQ, BIL};
+
 	/** Pixel-based bitmap (raster) image.
 
 	This class stores image data as a std::vector<T> object, so it does NOT need to release
@@ -68,21 +81,43 @@ namespace Imaging
 
 		//////////////////////////////////////////////////
 		// Methods.
+
+		/** Copies the image data of an ROI of a source image to another ROI
+		of this image.
+		
+		@NOTE destination image must already have been allocated. */
 		void CopyFrom(const ImageFrame<T> &imgSrc,
-			const Region<SizeType, SizeType> &roiSrc, const Point2D<SizeType> &orgnDst);
+			const Region<SizeType, SizeType> &roiSrc,
+			const Point2D<SizeType> &orgnDst);
+
+		/** Copies an entire image from a raw data block with zero padding.
+		
+		@NOTE destination image will be reallocated based on the size of source
+		image. */
+		void CopyFrom(const T *src, const Size2D<typename ImageFrame<T>::SizeType> &sz,
+			typename ImageFrame<T>::SizeType depth, ::size_t bytesPerLine,
+			RawImageFormat fmt = RawImageFormat::BIP);
+
+		/** Copies the image data of this image to a destination image.
+		
+		@NOTE destination image will be resized based on the size of the source
+		ROI. */
+		void CopyTo(const Region<SizeType, SizeType> &roiSrc,
+			ImageFrame<T> &imgDst) const;
+
 		void Clear(void);
 		void Resize(const Size2D<SizeType> &sz, SizeType d = 1);
 		void Resize(SizeType w, SizeType h, SizeType d = 1);
 
-		void CheckDepth(SizeType c) const;	// move to protedted?
-		void CheckRange(SizeType c) const;	// move to protedted?
-		void CheckRange(SizeType x, SizeType y) const;	// move to protedted?
-		void CheckRange(const Point2D<SizeType> &orgn, const Size2D<SizeType> &sz) const;
-		void CheckRange(const Region<SizeType, SizeType> &roi) const;
+		void CheckDepth(SizeType c) const;	// move to protected?
+		void CheckRange(SizeType c) const;	// move to protected?
+		void CheckRange(SizeType x, SizeType y) const;	// move to protected?
 
 	protected:
 		//////////////////////////////////////////////////
 		// Methods.
+		void CheckRange(const Point2D<SizeType> &orgn, const Size2D<SizeType> &sz) const;
+		void CheckRange(const Region<SizeType, SizeType> &roi) const;
 		SizeType GetOffset(SizeType x, SizeType y, SizeType c = 0) const;
 		void Swap(ImageFrame<T> &src);
 
