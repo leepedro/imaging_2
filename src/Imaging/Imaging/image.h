@@ -93,7 +93,9 @@ namespace Imaging
 		/** Copies an entire image from a raw data block with zero padding.
 		
 		@NOTE destination image will be reallocated based on the size of source
-		image. */
+		image.
+		
+		TODO: different conversion scenarios */
 		void CopyFrom(const T *src, const Size2D<typename ImageFrame<T>::SizeType> &sz,
 			typename ImageFrame<T>::SizeType depth, ::size_t bytesPerLine,
 			RawImageFormat fmt = RawImageFormat::BIP);
