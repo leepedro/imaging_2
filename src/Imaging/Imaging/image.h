@@ -90,7 +90,7 @@ namespace Imaging
 			const Region<SizeType, SizeType> &roiSrc,
 			const Point2D<SizeType> &orgnDst);
 
-		/** Copies an entire image from a raw data block with zero padding.
+		/** Copies an entire image from a raw data block WITH zero padding.
 		
 		@NOTE destination image will be reallocated based on the size of source
 		image.
@@ -98,6 +98,16 @@ namespace Imaging
 		TODO: different conversion scenarios */
 		void CopyFrom(const T *src, const Size2D<typename ImageFrame<T>::SizeType> &sz,
 			typename ImageFrame<T>::SizeType depth, ::size_t bytesPerLine,
+			RawImageFormat fmt = RawImageFormat::BIP);
+
+		/** Copies an entire image from a raw data block WITHOUT zero padding.
+		
+		@NOTE destination image will be reallocated based on the size of source
+		image.
+		
+		TODO: different conversion scenarios */
+		void CopyFrom(const T *src, const Size2D<typename ImageFrame<T>::SizeType> &sz,
+			typename ImageFrame<T>::SizeType depth,
 			RawImageFormat fmt = RawImageFormat::BIP);
 
 		/** Copies the image data of this image to a destination image.

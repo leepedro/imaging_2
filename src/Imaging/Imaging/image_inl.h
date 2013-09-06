@@ -176,6 +176,52 @@ namespace Imaging
 	}
 
 	template <typename T>
+	void ImageFrame<T>::CopyFrom(const T *src, const Size2D<typename ImageFrame<T>::SizeType> &sz,
+		typename ImageFrame<T>::SizeType depth,	RawImageFormat fmt)
+	{
+		// Reset destination image for given dimension.
+		this->resize(sz, depth);
+
+		auto nElem = depth * sz.width * sz.height;
+		
+		switch (fmt)
+		{
+		case Imaging::RawImageFormat::BIP:
+			auto it_dst = this->GetIterator(0, 0);
+			std::copy(src, src + nElem, it_dst);
+			break;
+		case Imaging::RawImageFormat::BSQ:
+			for (auto C = 0; C != depth; ++C)
+			{
+				auto it_dst = this->GetIterator(0, 0, C);
+				for (auto end = src + sz.width * sz.height; src == end; ++src)
+				{
+					*it_dst = *src;
+					it_dst += depth;
+				}
+			}
+			break;
+		case Imaging::RawImageFormat::BIL:
+			for (auto R = 0; R != sz.height; ++R)
+			{
+				for (auto C = 0; C != depth; ++C)
+				{
+					//???
+				}
+			}
+			break;
+		case Imaging::RawImageFormat::UNKNOWN:
+			//break;
+		default:
+			std::ostringstream errMsg;
+			errMsg << "Raw image format " << static_cast<int>(fmt) <<
+				" is not supported.";
+			throw std::logic_error(errMsg.str());
+			break;
+		}		
+	}
+
+	template <typename T>
 	void ImageFrame<T>::CopyTo(const Region<SizeType, SizeType> &roiSrc,
 		ImageFrame<T> &imgDst) const
 	{
