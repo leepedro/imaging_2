@@ -266,6 +266,19 @@ namespace Imaging
 	template <typename T>
 	void CopyLines(typename std::vector<T>::const_iterator it_src, ::size_t nElemPerLineSrc,
 		T *dst, ::size_t nElemPerLineDst, ::size_t nElemWidth, ::size_t nLines);
+
+	// TODO: Convert BSQ to BIP
+
+	// TODO: Convert BIL to BIP
+
+	// TODO: Convert BIP to BSQ
+
+	// TODO: Convert BIL to BSQ
+
+	// TODO: Convert BSQ to BIL (?)
+
+	// TODO: Convert BIP to BIL (?)
+
 }
 
 #include "containers_inl.h"

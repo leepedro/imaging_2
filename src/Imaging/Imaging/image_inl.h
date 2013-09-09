@@ -180,38 +180,38 @@ namespace Imaging
 		typename ImageFrame<T>::SizeType depth,	RawImageFormat fmt)
 	{
 		// Reset destination image for given dimension.
-		this->resize(sz, depth);
-
-		auto nElem = depth * sz.width * sz.height;
+		this->resize(sz, depth);	
 		
+		// Copy image data pixel by pixel.
 		switch (fmt)
 		{
 		case Imaging::RawImageFormat::BIP:
 			auto it_dst = this->GetIterator(0, 0);
+			auto nElem = depth * sz.width * sz.height;
 			std::copy(src, src + nElem, it_dst);
 			break;
 		case Imaging::RawImageFormat::BSQ:
 			for (auto C = 0; C != depth; ++C)
-			{
 				auto it_dst = this->GetIterator(0, 0, C);
-				for (auto end = src + sz.width * sz.height; src == end; ++src)
+				for (auto endSrc = src + sz.width * sz.height; src == endSrc; ++src)
 				{
 					*it_dst = *src;
 					it_dst += depth;
 				}
-			}
 			break;
 		case Imaging::RawImageFormat::BIL:
 			for (auto R = 0; R != sz.height; ++R)
-			{
 				for (auto C = 0; C != depth; ++C)
 				{
-					//???
+					auto it_dst = this->GetIterator(0, R, C);
+					for (auto endSrc = src + sz.width; src == endSrc; ++src)
+					{
+						*it_dst = *src;
+						it_dst += depth;
+					}
 				}
-			}
 			break;
 		case Imaging::RawImageFormat::UNKNOWN:
-			//break;
 		default:
 			std::ostringstream errMsg;
 			errMsg << "Raw image format " << static_cast<int>(fmt) <<
