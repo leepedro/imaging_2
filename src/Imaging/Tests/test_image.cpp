@@ -7,6 +7,17 @@ image.h */
 #include <iostream>
 #include <sstream>
 
+void TestConvert(void)
+{
+	using namespace Imaging;
+
+	std::vector<unsigned int> imgBsq1(24), imgBip1(24);
+	for (unsigned int I = 0; I != imgBsq1.size(); ++I)
+		imgBsq1[I] = I;
+
+	BsqToBip(imgBsq1, 3, 8, imgBip1);
+}
+
 template <typename T>
 void TestImageFrame(::size_t width, ::size_t height, ::size_t depth = 1)
 {

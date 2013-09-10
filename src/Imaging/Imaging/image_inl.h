@@ -3,6 +3,63 @@
 
 namespace Imaging
 {
+	template <typename T>
+	void CopyLines(typename std::vector<T>::const_iterator it_src,
+		typename std::vector<T>::size_type nElemPerLineSrc,
+		typename std::vector<T>::iterator it_dst,
+		typename std::vector<T>::size_type nElemPerLineDst,
+		typename std::vector<T>::size_type nElemWidth,
+		typename std::vector<T>::size_type nLines)
+	{
+		for (auto H = 0; H != nLines; ++H)
+		{
+			std::copy(it_src, it_src + nElemWidth, it_dst);
+			it_src += nElemPerLineSrc;
+			it_dst += nElemPerLineDst;
+		}
+	}
+
+
+	/** Implemented stdext::checked_array_iterator<> class for Visual Studio to bypass C4996
+	warning. */
+	template <typename T>
+	void CopyLines(typename std::vector<T>::const_iterator it_src, ::size_t nElemPerLineSrc,
+		T *dst, ::size_t nElemPerLineDst, ::size_t nElemWidth, ::size_t nLines)
+	{
+		for (auto H = 0; H != nLines; ++H)
+		{
+#if defined(WIN32)
+			std::copy(it_src, it_src + nElemWidth,
+				stdext::checked_array_iterator<T *>(dst, nElemPerLineDst));
+#else
+			std::copy(it_src, it_src + nElemWidth, dst);
+#endif
+			it_src += nElemPerLineSrc;
+			dst += nElemPerLineDst;
+		}
+	}
+
+	/** Check the dimension of source and desitination data, and skip the
+	boundary check by using [] instead of at(). */
+	template <typename T>
+	void BsqToBip(const std::vector<T> &src,
+		typename std::vector<T>::size_type nBands,
+		typename std::vector<T>::size_type nSamplesPerBand, std::vector<T> &dst)
+	{
+		// Check the size of source/destination.
+		auto totalCount = nBands * nSamplesPerBand;
+		if (src.size() != totalCount || dst.size() != totalCount)
+			throw std::runtime_error(
+			"The size of source or destination block is unmatched for given dimension.");
+
+		for (auto B = 0; B != nBands; ++B)
+		{
+			auto it_src = src.cbegin() + nSamplesPerBand * B;			
+			for (auto inc = 0; inc != nSamplesPerBand; ++inc, ++it_src)
+				dst[nBands * inc + B] = *it_src;
+		}
+	}
+
 	////////////////////////////////////////////////////////////////////////////////////////
 	// ImageFrame<T> class
 
@@ -192,12 +249,14 @@ namespace Imaging
 			break;
 		case Imaging::RawImageFormat::BSQ:
 			for (auto C = 0; C != depth; ++C)
+			{
 				auto it_dst = this->GetIterator(0, 0, C);
 				for (auto endSrc = src + sz.width * sz.height; src == endSrc; ++src)
 				{
 					*it_dst = *src;
 					it_dst += depth;
 				}
+			}
 			break;
 		case Imaging::RawImageFormat::BIL:
 			for (auto R = 0; R != sz.height; ++R)

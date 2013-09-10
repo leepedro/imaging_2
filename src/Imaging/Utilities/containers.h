@@ -249,36 +249,6 @@ namespace Imaging
 
 	////////////////////////////////////////////////////////////////////////////////////////
 	// Global functions and operators for std::vector<T> class.
-
-	/** Copies lines of data repeatedly from an std::vector<T> to another.
-	
-	This function is usually used to copy an ROI of data where an image is stored in an
-	std::vector<T>. */
-	template <typename T>
-	void CopyLines(typename std::vector<T>::const_iterator it_src,
-		typename std::vector<T>::size_type nElemPerLineSrc,
-		typename std::vector<T>::iterator it_dst,
-		typename std::vector<T>::size_type nElemPerLineDst,
-		typename std::vector<T>::size_type nElemWidth,
-		typename std::vector<T>::size_type nLines);
-
-	/** Copies lines of data repeatedly from an std::vector<T> to a raw pointer. */
-	template <typename T>
-	void CopyLines(typename std::vector<T>::const_iterator it_src, ::size_t nElemPerLineSrc,
-		T *dst, ::size_t nElemPerLineDst, ::size_t nElemWidth, ::size_t nLines);
-
-	// TODO: Convert BSQ to BIP
-
-	// TODO: Convert BIL to BIP
-
-	// TODO: Convert BIP to BSQ
-
-	// TODO: Convert BIL to BSQ
-
-	// TODO: Convert BSQ to BIL (?)
-
-	// TODO: Convert BIP to BIL (?)
-
 }
 
 #include "containers_inl.h"

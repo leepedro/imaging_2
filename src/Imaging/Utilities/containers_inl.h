@@ -244,42 +244,6 @@ namespace Imaging
 
 	////////////////////////////////////////////////////////////////////////////////////////
 	// Global functions and operators for std::vector<T> class.
-
-	template <typename T>
-	void CopyLines(typename std::vector<T>::const_iterator it_src,
-		typename std::vector<T>::size_type nElemPerLineSrc,
-		typename std::vector<T>::iterator it_dst,
-		typename std::vector<T>::size_type nElemPerLineDst,
-		typename std::vector<T>::size_type nElemWidth,
-		typename std::vector<T>::size_type nLines)
-	{
-		for (auto H = 0; H != nLines; ++H)
-		{
-			std::copy(it_src, it_src + nElemWidth, it_dst);
-			it_src += nElemPerLineSrc;
-			it_dst += nElemPerLineDst;
-		}
-	}
-
-
-	/** Implemented stdext::checked_array_iterator<> class for Visual Studio to bypass C4996
-	warning. */
-	template <typename T>
-	void CopyLines(typename std::vector<T>::const_iterator it_src, ::size_t nElemPerLineSrc,
-		T *dst, ::size_t nElemPerLineDst, ::size_t nElemWidth, ::size_t nLines)
-	{
-		for (auto H = 0; H != nLines; ++H)
-		{
-#if defined(WIN32)
-			std::copy(it_src, it_src + nElemWidth,
-				stdext::checked_array_iterator<T *>(dst, nElemPerLineDst));
-#else
-			std::copy(it_src, it_src + nElemWidth, dst);
-#endif
-			it_src += nElemPerLineSrc;
-			dst += nElemPerLineDst;
-		}
-	}
 }
 
 #endif
