@@ -11,11 +11,13 @@ void TestConvert(void)
 {
 	using namespace Imaging;
 
-	std::vector<unsigned int> imgBsq1(24), imgBip1(24);
+	std::vector<unsigned int> imgBsq1(24), imgBip1(24), imgBip2(24);
 	for (unsigned int I = 0; I != imgBsq1.size(); ++I)
 		imgBsq1[I] = I;
+	std::vector<unsigned int> imgBil1 = imgBsq1;
 
 	BsqToBip(imgBsq1, 3, 8, imgBip1);
+	BilToBip(imgBil1, 3, 4, 2, imgBip2);
 }
 
 template <typename T>
@@ -36,6 +38,11 @@ void TestImageFrame(::size_t width, ::size_t height, ::size_t depth = 1)
 	img3 = ImageFrame<T>(width, height, depth);	// custom constructor + unifying assignment (for moving)
 	ImageFrame<T> img4 = std::move(img2);	// move constructor
 	img4 = std::move(img3);	// move constructor + unifying assignment (for move)
+
+	std::vector<T> src1(depth * width * height, 1), src2(depth * width * height, 2);
+	Size2D<ImageFrame<T>::SizeType> sz(width, height);
+	ImageFrame<T> img5(src1, sz, depth);
+	ImageFrame<T> img6(std::move(src2), sz, depth);
 
 	try
 	{

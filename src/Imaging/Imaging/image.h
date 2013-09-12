@@ -7,6 +7,11 @@
 
 namespace Imaging
 {
+	// TODO
+	template <typename T>
+	void Copy(const void *src, ::size_t width, ::size_t height, ::size_t depth,
+		::size_t bytesPerLine, std::vector<T> &dst);
+
 	/** Copies lines of data repeatedly from an std::vector<T> to another.
 	
 	This function is usually used to copy an ROI of data where an image is stored in an
@@ -24,13 +29,25 @@ namespace Imaging
 	void CopyLines(typename std::vector<T>::const_iterator it_src, ::size_t nElemPerLineSrc,
 		T *dst, ::size_t nElemPerLineDst, ::size_t nElemWidth, ::size_t nLines);
 
-	/** Reorganizes data samples from BSQ to BIP format. */
+	/** Reorganizes data samples in std::vector<T> from BSQ to BIP format.
+	
+	Since data samples in source data is continuous through the whole band, the number of data
+	samples/band (instead of number of data samples/line and lines/band) is sufficient
+	information. */
 	template <typename T>
 	void BsqToBip(const std::vector<T> &src,
 		typename std::vector<T>::size_type nBands,
 		typename std::vector<T>::size_type nSamplesPerBand, std::vector<T> &dst);
 
-	// TODO: Convert BIL to BIP
+	/** Reorganizes data samples in std::vector<T> from BIL to BIP format.
+	
+	Since data samples in source data is continuous through only one line, number of data
+	samples/line and lines/band is required. */
+	template <typename T>
+	void BilToBip(const std::vector<T> &src,
+		typename std::vector<T>::size_type nBands,
+		typename std::vector<T>::size_type nSamplesPerLine,
+		typename std::vector<T>::size_type nLinesPerBand, std::vector<T> &dst);
 
 	// TODO: Convert BIP to BSQ
 
@@ -39,6 +56,8 @@ namespace Imaging
 	// TODO: Convert BSQ to BIL (?)
 
 	// TODO: Convert BIP to BIL (?)
+
+	// TODO: Copy image data from raw pointer to an std::vector<T>.
 
 
 	/** Presents image format by how the data is stored.
@@ -97,6 +116,8 @@ namespace Imaging
 		// Custom constructors.
 		ImageFrame(const Size2D<SizeType> &sz, SizeType d = 1);
 		ImageFrame(SizeType w, SizeType h, SizeType d = 1);
+		ImageFrame(const std::vector<T> &src, const Size2D<SizeType> &sz, SizeType d);
+		ImageFrame(std::vector<T> &&src, const Size2D<SizeType> &sz, SizeType d);
 
 		//////////////////////////////////////////////////
 		// Accessors.
@@ -136,13 +157,22 @@ namespace Imaging
 
 		/** Copies an entire image from a raw data block WITHOUT zero padding.
 		
-		@NOTE destination image will be reallocated based on the size of source
-		image.
-		
-		TODO: different conversion scenarios */
+		@NOTE destination is reallocated based on the size of source image. */
 		void CopyFrom(const T *src, const Size2D<typename ImageFrame<T>::SizeType> &sz,
-			typename ImageFrame<T>::SizeType depth,
+			typename ImageFrame<T>::SizeType d,
 			RawImageFormat fmt = RawImageFormat::BIP);
+
+		/** Copies image data from an std::vector<T> object.
+		
+		The correct dimension must be given. */
+		void CopyFrom(const std::vector<T> &src, const Size2D<SizeType> &sz, SizeType d);
+		void CopyFrom(const std::vector<T> &src, SizeType w, SizeType h, SizeType d);
+
+		/** Moves image data from an std::vector<T> object.
+		
+		The correct dimension must be given. */
+		void MoveFrom(std::vector<T> &&src, const Size2D<SizeType> &sz, SizeType d);
+		void MoveFrom(std::vector<T> &&src, SizeType w, SizeType h, SizeType d);
 
 		/** Copies the image data of this image to a destination image.
 		

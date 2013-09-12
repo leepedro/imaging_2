@@ -4,6 +4,28 @@
 namespace Imaging
 {
 	template <typename T>
+	void Copy(const void *src, ::size_t width, ::size_t height, ::size_t depth,
+		::size_t bytesPerLine, std::vector<T> &dst)
+	{
+		::size_t nElemPerLine = depth * width;
+		::size_t nElem = nElemPerLine * height;
+		if (bytesPerLine == nElemPerLine * sizeof(T))
+			Copy(src, nElem, dst);
+		else
+		{
+			if (dst.size() != nElem)
+				dst.resize(nElem);
+			auto it_dst = dst.begin();
+			for (auto Y = 0; Y != height; ++Y)
+			{
+				// ???
+				std::copy(src, src + nElemPerLine, it_dst);
+				// ???
+			}
+		}
+	}
+
+	template <typename T>
 	void CopyLines(typename std::vector<T>::const_iterator it_src,
 		typename std::vector<T>::size_type nElemPerLineSrc,
 		typename std::vector<T>::iterator it_dst,
@@ -40,7 +62,7 @@ namespace Imaging
 	}
 
 	/** Check the dimension of source and desitination data, and skip the
-	boundary check by using [] instead of at(). */
+	boundary check by using [] instead of at().	*/
 	template <typename T>
 	void BsqToBip(const std::vector<T> &src,
 		typename std::vector<T>::size_type nBands,
@@ -52,12 +74,35 @@ namespace Imaging
 			throw std::runtime_error(
 			"The size of source or destination block is unmatched for given dimension.");
 
+		// Copy data samples band by band.
 		for (auto B = 0; B != nBands; ++B)
 		{
 			auto it_src = src.cbegin() + nSamplesPerBand * B;			
 			for (auto inc = 0; inc != nSamplesPerBand; ++inc, ++it_src)
 				dst[nBands * inc + B] = *it_src;
 		}
+	}
+
+	template <typename T>
+	void BilToBip(const std::vector<T> &src,
+		typename std::vector<T>::size_type nBands,
+		typename std::vector<T>::size_type nSamplesPerLine,
+		typename std::vector<T>::size_type nLinesPerBand, std::vector<T> &dst)
+	{
+		// Check the size of source/destination.
+		auto totalCount = nBands * nSamplesPerLine * nLinesPerBand;
+		if (src.size() != totalCount || dst.size() != totalCount)
+			throw std::runtime_error(
+			"The size of source or destination block is unmatched for given dimension.");
+	
+		// Copy data samples line by line.
+		for (auto L = 0; L != nLinesPerBand; ++L)
+			for (auto B = 0; B != nBands; ++B)
+			{
+				auto it_src = src.cbegin() + nSamplesPerLine * nBands * L + nSamplesPerLine * B;
+				for (auto inc = 0; inc != nSamplesPerLine; ++inc, ++it_src)
+					dst[nSamplesPerLine * nBands * L + nBands * inc + B] = *it_src;
+			}
 	}
 
 	////////////////////////////////////////////////////////////////////////////////////////
@@ -94,6 +139,7 @@ namespace Imaging
 		this->Swap(src);
 	}
 
+	/** Unifying assignment operator acts in both copy assignment and move assignment. */
 	template <typename T>
 	ImageFrame<T> &ImageFrame<T>::operator=(ImageFrame<T> src)
 	{
@@ -123,6 +169,28 @@ namespace Imaging
 #endif
 	{
 		this->Resize(w, h, d);
+	}
+
+	template <typename T>
+	ImageFrame<T>::ImageFrame(const std::vector<T> &src, const Size2D<SizeType> &sz, SizeType d) :
+#if defined(WIN32) && _MSC_VER <= 1700	// up to VS2012
+		data(data_), depth(depth_), size(size_)
+#else	// C+11
+		ImageFrame<T>()
+#endif
+	{
+		this->CopyFrom(src, sz, d);
+	}
+
+	template <typename T>
+	ImageFrame<T>::ImageFrame(std::vector<T> &&src, const Size2D<SizeType> &sz, SizeType d) :
+#if defined(WIN32) && _MSC_VER <= 1700	// up to VS2012
+		data(data_), depth(depth_), size(size_)
+#else	// C+11
+		ImageFrame<T>()
+#endif
+	{
+		this->MoveFrom(std::move(src), sz, d);
 	}
 
 	////////////////////////////////////////////////////////////////////////////////////////
@@ -162,6 +230,58 @@ namespace Imaging
 
 	////////////////////////////////////////////////////////////////////////////////////////
 	// Methods.
+
+	template <typename T>
+	void ImageFrame<T>::CheckDepth(SizeType c) const
+	{
+		if (this->depth != c)
+			throw std::runtime_error("Depth is not matched.");
+	}
+
+	/** Throws an exception instead of returning false because you have to throw an
+	exception at a higher level any way. */
+	template <typename T>
+	void ImageFrame<T>::CheckRange(SizeType c) const
+	{
+		if (c < 0 || c >= this->depth)
+		{
+			std::ostringstream errMsg;
+			errMsg << "Channel c = " << c << " is out of range.";
+			throw std::out_of_range(errMsg.str());
+		}
+	}
+
+	template <typename T>
+	void ImageFrame<T>::CheckRange(SizeType x, SizeType y) const
+	{
+		if (x < 0 || x >= this->size.width || y < 0 || y >= this->size.height)
+		{
+			std::ostringstream errMsg;
+			errMsg << "Position (" << x << ", " << y << ") is out of range.";
+			throw std::out_of_range(errMsg.str());
+		}
+	}
+
+	// The end points are the excluding end of an ROI, so it could be up to (width, height).
+	template <typename T>
+	void ImageFrame<T>::CheckRange(const Point2D<SizeType> &orgn, const Size2D<SizeType> &sz) const
+	{
+		Point2D<SizeType> ptEnd = orgn + sz;
+		if (orgn.x < 0 || ptEnd.x > this->size.width || orgn.y < 0 ||
+			ptEnd.y > this->size.height)
+		{
+			std::ostringstream errMsg;
+			errMsg << "[" << orgn.x << ", " << orgn.y << "] ~ (" << ptEnd.x << ", " <<
+				ptEnd.y << ") is out of range.";
+			throw std::out_of_range(errMsg.str());
+		}
+	}
+
+	template <typename T>
+	void ImageFrame<T>::CheckRange(const Region<SizeType, SizeType> &roi) const
+	{
+		this->CheckRange(roi.origin, roi.size);
+	}
 
 	template <typename T>
 	void ImageFrame<T>::CopyFrom(const ImageFrame<T> &imgSrc,
@@ -234,41 +354,51 @@ namespace Imaging
 
 	template <typename T>
 	void ImageFrame<T>::CopyFrom(const T *src, const Size2D<typename ImageFrame<T>::SizeType> &sz,
-		typename ImageFrame<T>::SizeType depth,	RawImageFormat fmt)
+		typename ImageFrame<T>::SizeType d,	RawImageFormat fmt)
 	{
 		// Reset destination image for given dimension.
-		this->resize(sz, depth);	
-		
+		//this->Resize(sz, depth);
+		// Copy raw image data into an std::vector<T> in prior to format conversion.
+		std::vector<T> dataSrc;
+		Copy(dataSrc, d * sz.width * sz.height, temp);
+
 		// Copy image data pixel by pixel.
 		switch (fmt)
 		{
 		case Imaging::RawImageFormat::BIP:
-			auto it_dst = this->GetIterator(0, 0);
-			auto nElem = depth * sz.width * sz.height;
-			std::copy(src, src + nElem, it_dst);
+			this->MoveFrom(std::move(dataSrc), sz, depth);
+			//auto it_dst = this->GetIterator(0, 0);
+			//auto nElem = d * sz.width * sz.height;
+			//std::copy(src, src + nElem, it_dst);
 			break;
 		case Imaging::RawImageFormat::BSQ:
-			for (auto C = 0; C != depth; ++C)
-			{
-				auto it_dst = this->GetIterator(0, 0, C);
-				for (auto endSrc = src + sz.width * sz.height; src == endSrc; ++src)
-				{
-					*it_dst = *src;
-					it_dst += depth;
-				}
-			}
+			std::vector<T> temp;
+			BsqToBip(dataSrc, depth, sz.width * sz.height, temp);
+			this->MoveFrom(std::move(temp), sz, depth);
+			//for (auto C = 0; C != depth; ++C)
+			//{
+			//	auto it_dst = this->GetIterator(0, 0, C);
+			//	for (auto endSrc = src + sz.width * sz.height; src == endSrc; ++src)
+			//	{
+			//		*it_dst = *src;
+			//		it_dst += depth;
+			//	}
+			//}
 			break;
 		case Imaging::RawImageFormat::BIL:
-			for (auto R = 0; R != sz.height; ++R)
-				for (auto C = 0; C != depth; ++C)
-				{
-					auto it_dst = this->GetIterator(0, R, C);
-					for (auto endSrc = src + sz.width; src == endSrc; ++src)
-					{
-						*it_dst = *src;
-						it_dst += depth;
-					}
-				}
+			std::vector<T> temp;
+			BilToBip(dataSrc, depth, sz.width, sz.height, temp);
+			this->MoveFrom(std::move(temp), sz, depth);
+			//for (auto R = 0; R != sz.height; ++R)
+			//	for (auto C = 0; C != depth; ++C)
+			//	{
+			//		auto it_dst = this->GetIterator(0, R, C);
+			//		for (auto endSrc = src + sz.width; src == endSrc; ++src)
+			//		{
+			//			*it_dst = *src;
+			//			it_dst += depth;
+			//		}
+			//	}
 			break;
 		case Imaging::RawImageFormat::UNKNOWN:
 		default:
@@ -278,6 +408,48 @@ namespace Imaging
 			throw std::logic_error(errMsg.str());
 			break;
 		}		
+	}
+
+	template <typename T>
+	void ImageFrame<T>::CopyFrom(const std::vector<T> &src, const Size2D<SizeType> &sz,
+		SizeType d)
+	{
+		// Check source dimension.
+		if (src.size() != sz.width * sz.height * d)
+			throw std::runtime_error(
+			"The size of source block is unmatched for given dimension.");
+
+		this->data_ = src;
+		this->depth_ = d;
+		this->size_ = sz;
+	}
+
+	template <typename T>
+	void ImageFrame<T>::CopyFrom(const std::vector<T> &src, SizeType w, SizeType h,
+		SizeType d)
+	{
+		this->CopyFrom(src, Size2D<SizeType>(w, h), d);
+	}
+
+	template <typename T>
+	void ImageFrame<T>::MoveFrom(std::vector<T> &&src, const Size2D<SizeType> &sz,
+		SizeType d)
+	{
+		// Check source dimension.
+		if (src.size() != sz.width * sz.height * d)
+			throw std::runtime_error(
+			"The size of source block is unmatched for given dimension.");
+
+		this->data_ = std::move(src);
+		this->depth_ = d;
+		this->size_ = sz;
+	}
+
+	template <typename T>
+	void ImageFrame<T>::MoveFrom(std::vector<T> &&src, SizeType w, SizeType h,
+		SizeType d)
+	{
+		this->MoveFrom(src, Size2D<SizeType>(w, h), d);
 	}
 
 	template <typename T>
@@ -298,58 +470,6 @@ namespace Imaging
 			roiSrc.size.height);
 	}
 	
-	template <typename T>
-	void ImageFrame<T>::CheckDepth(SizeType c) const
-	{
-		if (this->depth != c)
-			throw std::runtime_error("Depth is not matched.");
-	}
-
-	/** Throws an exception instead of returning false because you have to throw an
-	exception at a higher level any way. */
-	template <typename T>
-	void ImageFrame<T>::CheckRange(SizeType c) const
-	{
-		if (c < 0 || c >= this->depth)
-		{
-			std::ostringstream errMsg;
-			errMsg << "Channel c = " << c << " is out of range.";
-			throw std::out_of_range(errMsg.str());
-		}
-	}
-
-	template <typename T>
-	void ImageFrame<T>::CheckRange(SizeType x, SizeType y) const
-	{
-		if (x < 0 || x >= this->size.width || y < 0 || y >= this->size.height)
-		{
-			std::ostringstream errMsg;
-			errMsg << "Position (" << x << ", " << y << ") is out of range.";
-			throw std::out_of_range(errMsg.str());
-		}
-	}
-
-	// The end points are the excluding end of an ROI, so it could be up to (width, height).
-	template <typename T>
-	void ImageFrame<T>::CheckRange(const Point2D<SizeType> &orgn, const Size2D<SizeType> &sz) const
-	{
-		Point2D<SizeType> ptEnd = orgn + sz;
-		if (orgn.x < 0 || ptEnd.x > this->size.width || orgn.y < 0 ||
-			ptEnd.y > this->size.height)
-		{
-			std::ostringstream errMsg;
-			errMsg << "[" << orgn.x << ", " << orgn.y << "] ~ (" << ptEnd.x << ", " <<
-				ptEnd.y << ") is out of range.";
-			throw std::out_of_range(errMsg.str());
-		}
-	}
-
-	template <typename T>
-	void ImageFrame<T>::CheckRange(const Region<SizeType, SizeType> &roi) const
-	{
-		this->CheckRange(roi.origin, roi.size);
-	}
-
 	template <typename T>
 	void ImageFrame<T>::Clear(void)
 	{

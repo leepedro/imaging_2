@@ -244,6 +244,16 @@ namespace Imaging
 
 	////////////////////////////////////////////////////////////////////////////////////////
 	// Global functions and operators for std::vector<T> class.
+
+	template <typename T>
+	void Copy(const T *src, ::size_t length, std::vector<T> &dst)
+	{
+		// Re-allocate destination.
+		if (dst.size() != length)
+			data.resize(length);
+
+		std::copy(src, src + length, dst.begin());
+	}
 }
 
 #endif
