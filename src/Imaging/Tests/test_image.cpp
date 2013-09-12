@@ -7,11 +7,20 @@ image.h */
 #include <iostream>
 #include <sstream>
 
+void TestDummyBytes(void)
+{
+	// {int x 3 channel x 4 pixel} x 2 lines -> 48 bytes/line x 2 lines = 96 bytes
+	// {32 bytes x 2} x 2 lines -> 64 bytes/line x 2 lines = 128 bytes
+	std::array<int, 24> int_1;
+	for (int I = 0; I != int_1.size(); ++I)
+		int_1[I] = I;
+}
+
 void TestConvert(void)
 {
 	using namespace Imaging;
 
-	// TODO: dummy padded bytes.
+	TestDummyBytes();
 
 	std::vector<unsigned int> imgBsq1(24), imgBip1(24), imgBip2(24);
 	for (unsigned int I = 0; I != imgBsq1.size(); ++I)
