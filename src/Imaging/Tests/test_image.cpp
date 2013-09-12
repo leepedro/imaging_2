@@ -11,6 +11,8 @@ void TestConvert(void)
 {
 	using namespace Imaging;
 
+	// TODO: dummy padded bytes.
+
 	std::vector<unsigned int> imgBsq1(24), imgBip1(24), imgBip2(24);
 	for (unsigned int I = 0; I != imgBsq1.size(); ++I)
 		imgBsq1[I] = I;

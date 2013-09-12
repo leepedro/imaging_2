@@ -8,6 +8,8 @@
 namespace Imaging
 {
 	// TODO
+	/** Copies image data from a void raw pointer to an std::vector<T> object
+	after taking out dummy padding bytes. */
 	template <typename T>
 	void Copy(const void *src, ::size_t width, ::size_t height, ::size_t depth,
 		::size_t bytesPerLine, std::vector<T> &dst);
@@ -31,8 +33,8 @@ namespace Imaging
 
 	/** Reorganizes data samples in std::vector<T> from BSQ to BIP format.
 	
-	Since data samples in source data is continuous through the whole band, the number of data
-	samples/band (instead of number of data samples/line and lines/band) is sufficient
+	Since data samples in source data is continuous through the whole band, the number of
+	data samples/band (instead of number of data samples/line and lines/band) is sufficient
 	information. */
 	template <typename T>
 	void BsqToBip(const std::vector<T> &src,

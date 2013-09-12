@@ -10,19 +10,22 @@ namespace Imaging
 		::size_t nElemPerLine = depth * width;
 		::size_t nElem = nElemPerLine * height;
 		if (bytesPerLine == nElemPerLine * sizeof(T))
-			Copy(src, nElem, dst);
-		else
+			Copy(reinterpret_cast<T *>(src), nElem, dst);
+		else if (bytesPerLine > nElemPerLine * sizeof(T))
 		{
 			if (dst.size() != nElem)
 				dst.resize(nElem);
 			auto it_dst = dst.begin();
-			for (auto Y = 0; Y != height; ++Y)
-			{
-				// ???
-				std::copy(src, src + nElemPerLine, it_dst);
-				// ???
-			}
+			const char *it_src = src;
+			for (auto Y = 0; Y != height; ++Y, it_src += bytesPerLine,
+				it_dst += nElemPerLine)
+				std::copy(reinterpret_cast<T *>(it_src),
+					reinterpret_cast<T *>(it_src) + nElemPerLine, it_dst);
 		}
+		else
+			throw std::invalid_argument(
+				"The number of bytes per line must be equal or greater than the "
+				"number of effective bytes per line.");
 	}
 
 	template <typename T>
