@@ -250,7 +250,7 @@ namespace Imaging
 	{
 		// Re-allocate destination.
 		if (dst.size() != length)
-			data.resize(length);
+			dst.resize(length);
 
 		std::copy(src, src + length, dst.begin());
 	}

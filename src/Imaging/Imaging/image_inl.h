@@ -10,17 +10,17 @@ namespace Imaging
 		::size_t nElemPerLine = depth * width;
 		::size_t nElem = nElemPerLine * height;
 		if (bytesPerLine == nElemPerLine * sizeof(T))
-			Copy(reinterpret_cast<T *>(src), nElem, dst);
+			Copy(reinterpret_cast<const T *>(src), nElem, dst);
 		else if (bytesPerLine > nElemPerLine * sizeof(T))
 		{
 			if (dst.size() != nElem)
 				dst.resize(nElem);
 			auto it_dst = dst.begin();
-			const char *it_src = src;
+			const char *it_src = reinterpret_cast<const char *>(src);
 			for (auto Y = 0; Y != height; ++Y, it_src += bytesPerLine,
 				it_dst += nElemPerLine)
-				std::copy(reinterpret_cast<T *>(it_src),
-					reinterpret_cast<T *>(it_src) + nElemPerLine, it_dst);
+				std::copy(reinterpret_cast<const T *>(it_src),
+					reinterpret_cast<const T *>(it_src) + nElemPerLine, it_dst);
 		}
 		else
 			throw std::invalid_argument(

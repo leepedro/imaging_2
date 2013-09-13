@@ -11,9 +11,22 @@ void TestDummyBytes(void)
 {
 	// {int x 3 channel x 4 pixel} x 2 lines -> 48 bytes/line x 2 lines = 96 bytes
 	// {32 bytes x 2} x 2 lines -> 64 bytes/line x 2 lines = 128 bytes
-	std::array<int, 24> int_1;
-	for (int I = 0; I != int_1.size(); ++I)
-		int_1[I] = I;
+
+	// Make source data.
+	std::array<int, 24> src;
+	for (int I = 0; I != src.size(); ++I)
+		src[I] = I;
+
+	// Copy to source data with dummy padding.
+	void *raw_1 = new char[128];	// 128 bytes
+	//::memcpy_s(raw_1, 128, &*src.cbegin(), 48);
+	::memcpy_s(raw_1, 128, src.data(), 48);
+	::memcpy_s(reinterpret_cast<char *>(raw_1) + 64, 64, &*(src.cbegin() + 12), 48);
+
+	// Copy data from dummy padded memory to an std::vector<T>.
+	std::vector<int> dst1;
+	Imaging::Copy(raw_1, 4, 2, 3, 64, dst1);
+	delete [] raw_1;
 }
 
 void TestConvert(void)
