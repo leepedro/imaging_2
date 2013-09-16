@@ -250,7 +250,7 @@ namespace Imaging
 	////////////////////////////////////////////////////////////////////////////////////////
 	// Global functions and operators for std::vector<T> class.
 
-	/** TODO: Copy image data from raw pointer to an std::vector<T>.
+	/** Copy data from a raw pointer to an std::vector<T>.
 
 	@NOTE There is no way to check the dimension of source data, so users must ensure it.
 	@NOTE Destination will be reallocated based on the size of source. */

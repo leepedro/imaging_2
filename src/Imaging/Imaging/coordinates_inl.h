@@ -13,11 +13,7 @@ namespace Imaging
 
 	template <typename T>
 	Point2D<T>::Point2D(const Point2D<T> &src) :
-#if defined(WIN32) && _MSC_VER <= 1700	// up to VS2012
 		std::array<T, 2>(src), x(this->at(0)), y(this->at(1)) {}
-#else	// C++11
-		std::array<T, 2>(src), Point2D<T>() {}
-#endif
 
 	template <typename T>
 	Point2D<T>::Point2D(Point2D<T> &&src) :
@@ -74,11 +70,7 @@ namespace Imaging
 	*/
 	template <typename T>
 	Point2D<T>::Point2D(const std::array<T, 2> &src) :
-#if defined(WIN32) && _MSC_VER <= 1700	// up to VS2012
 		std::array<T, 2>(src), x(this->at(0)), y(this->at(1)) {}
-#else	// C++11
-		std::array<T, 2>(src), Point2D<T>() {}
-#endif
 
 	////////////////////////////////////////////////////////////////////////////////////////
 	// Point3D<T>
@@ -90,11 +82,7 @@ namespace Imaging
 
 	template <typename T>
 	Point3D<T>::Point3D(const Point3D<T> &src) :
-#if defined(WIN32) && _MSC_VER <= 1700	// up to VS2012
 		std::array<T, 3>(src), x(this->at(0)), y(this->at(1)), z(this->at(2)) {}
-#else	// C++11
-		std::array<T, 3>(src), Point3D<T>() {}
-#endif
 
 	template <typename T>
 	Point3D<T> &Point3D<T>::operator=(const Point3D<T> &src)
@@ -130,11 +118,7 @@ namespace Imaging
 
 	template <typename T>
 	Size2D<T>::Size2D(const Size2D &src) :
-#if defined(WIN32) && _MSC_VER <= 1700	// up to VS2012
 		std::array<T, 2>(src), width(this->at(0)), height(this->at(1)) {}
-#else	// C++11
-		std::array<T, 2>(src), Size2D<T>() {}
-#endif
 
 	template <typename T>
 	Size2D<T> &Size2D<T>::operator=(const Size2D<T> &src)
@@ -165,11 +149,7 @@ namespace Imaging
 	variable wouldn't be copied from the source. */
 	template <typename T>
 	Size2D<T>::Size2D(const std::array<T, 2> &src) :
-#if defined(WIN32) && _MSC_VER <= 1700	// up to VS2012
 		std::array<T, 2>(src), width(this->at(0)), height(this->at(1)) {}
-#else	// C++11
-		std::array<T, 2>(src), Size2D<T>() {}
-#endif
 
 	////////////////////////////////////////////////////////////////////////////////////////
 	// Size3D<T>
@@ -181,11 +161,7 @@ namespace Imaging
 
 	template <typename T>
 	Size3D<T>::Size3D(const Size3D<T> &src) :
-#if defined(WIN32) && _MSC_VER <= 1700	// up to VS2012
 		std::array<T, 3>(src), width(this->at(0)), height(this->at(1)), depth(this->at(2)) {}
-#else	// C++11
-		std::array<T, 3>(src), Size3D<T>() {}
-#endif
 
 	template <typename T>
 	Size3D<T> &Size3D<T>::operator=(const Size3D<T> &src)

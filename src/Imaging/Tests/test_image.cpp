@@ -7,6 +7,8 @@ image.h */
 #include <iostream>
 #include <sstream>
 
+#include "opencv2/opencv.hpp"
+
 void TestDummyBytes(void)
 {
 	// {int x 3 channel x 4 pixel} x 2 lines -> 48 bytes/line x 2 lines = 96 bytes
@@ -17,13 +19,18 @@ void TestDummyBytes(void)
 	for (int I = 0; I != src.size(); ++I)
 		src[I] = I;
 
-	// Copy to source data with dummy padding.
-	void *raw_1 = new char[128];	// 128 bytes
+	// Copy to source data with padding bytes.
+	char *raw_1 = new char[128];	// 128 bytes
 	//::memcpy_s(raw_1, 128, &*src.cbegin(), 48);
+#if defined(WIN32)
 	::memcpy_s(raw_1, 128, src.data(), 48);
-	::memcpy_s(reinterpret_cast<char *>(raw_1) + 64, 64, &*(src.cbegin() + 12), 48);
+	::memcpy_s(raw_1 + 64, 64, &*(src.cbegin() + 12), 48);
+#else
+	::memcpy(raw_1, src.data(), 48);	// first line (32 bytes x 2)
+	::memcpy(raw_1 + 64, &*(src.cbegin() + 12), 48);	// second line (32 bytes x 2)
+#endif
 
-	// Copy data from dummy padded memory to an std::vector<T>.
+	// Copy data from a raw pointer with padded bytes to an std::vector<T>.
 	std::vector<int> dst1;
 	Imaging::Copy(raw_1, 4, 2, 3, 64, dst1);
 	delete [] raw_1;
@@ -64,7 +71,7 @@ void TestImageFrame(::size_t width, ::size_t height, ::size_t depth = 1)
 	img4 = std::move(img3);	// move constructor + unifying assignment (for move)
 
 	std::vector<T> src1(depth * width * height, 1), src2(depth * width * height, 2);
-	Size2D<ImageFrame<T>::SizeType> sz(width, height);
+	Size2D<typename ImageFrame<T>::SizeType> sz(width, height);
 	ImageFrame<T> img5(src1, sz, depth);
 	ImageFrame<T> img6(std::move(src2), sz, depth);
 
@@ -104,7 +111,7 @@ void TestImageFrame(::size_t width, ::size_t height, ::size_t depth = 1)
 	std::cout << "After change: width = " << img4.size.width << ", height = "
 		<< img4.size.height << ", depth = " << img4.depth << std::endl;
 
-	ImageFrame<T>::Iterator it = img1.GetIterator(1, 1);
+	typename ImageFrame<T>::Iterator it = img1.GetIterator(1, 1);
 }
 
 void TestImageFrames(void)
@@ -132,4 +139,52 @@ void TestImageFrames(void)
 	}
 
 	std::cout << std::endl << "Test for image.h has been completed." << std::endl;
+}
+
+void TestImage(void)
+{
+	try
+	{
+		using namespace Imaging;
+
+		cv::Mat cvSrc1 = cv::imread(std::string("Lenna.png"), CV_LOAD_IMAGE_COLOR);
+		cv::namedWindow(std::string("Source 1"), CV_WINDOW_AUTOSIZE);
+		cv::imshow(std::string("Source 1"), cvSrc1);
+		cv::waitKey(0);		
+
+		// Copy from cv::Mat object to ImageFrame<T>.
+		ImageFrame<unsigned char> img1;
+		img1.CopyFrom(cvSrc1.ptr(), cvSrc1.cols, cvSrc1.rows, cvSrc1.channels(),
+			cvSrc1.channels() * cvSrc1.cols);
+
+		// Copy from ImageFrame<T> to cv::Mat.
+		cv::Mat cvDst1(SafeCast<int>(img1.size.height),
+			SafeCast<int>(img1.size.width), CV_8UC3, cv::Scalar(0, 0, 0));
+		Region<ImageFrame<unsigned char>::SizeType, ImageFrame<unsigned char>::SizeType> roiSrc1(0, 0, img1.size.width, img1.size.height);
+#if defined(WIN32)
+		std::copy(img1.data.cbegin(), img1.data.cend(),
+			stdext::checked_array_iterator<unsigned char *>(cvDst1.ptr(), img1.data.size()));
+#else
+		std::copy(img1.data.cbegin(), img1.data.cend(), cvDst1.ptr());
+#endif
+		cv::namedWindow(std::string("Destination 1"), CV_WINDOW_AUTOSIZE);
+		cv::imshow(std::string("Destination 1"), cvDst1);
+		cv::waitKey(0);
+
+		// Shared allocation of cv::Mat object from an ImageFrame<T>.
+		auto it_img1 = img1.GetIterator(0, 0);
+		cv::Mat cvDst2(SafeCast<int>(img1.size.height),
+			SafeCast<int>(img1.size.width), CV_8UC3, &(*it_img1));
+		cv::namedWindow(std::string("Destination 2"), CV_WINDOW_AUTOSIZE);
+		cv::imshow(std::string("Destination 2"), cvDst2);
+		cv::waitKey(0);
+	}
+	catch (const std::exception &ex)
+	{
+		std::cout << ex.what() << std::endl;
+	}
+	catch (...)
+	{
+		std::cout << "Unknown exception" << std::endl;
+	}
 }

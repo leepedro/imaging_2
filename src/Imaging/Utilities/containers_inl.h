@@ -62,7 +62,7 @@ namespace Imaging
 	void Add(std::array<T, N> &a, const std::array<T, N> &b)
 	{
 		auto it_b = b.cbegin();
-		for (auto it_a = a.begin(), it_a_end = a.end(); it_a != it_a_end; ++it_a, it_b)
+		for (auto it_a = a.begin(), it_a_end = a.end(); it_a != it_a_end; ++it_a, ++it_b)
 			*it_a = SafeAdd(*it_a, *it_b);
 	}
 

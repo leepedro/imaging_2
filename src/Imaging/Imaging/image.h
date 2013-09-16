@@ -2,6 +2,7 @@
 #define IMAGE_H
 
 #include <vector>
+#include <sstream>
 
 #include "coordinates.h"
 
@@ -159,26 +160,18 @@ namespace Imaging
 
 		The structure of source data is assumed to be identical to the image data of
 		ImageFrame<T> class. */
-		void CopyFrom(const T *src, const Size2D<typename ImageFrame<T>::SizeType> &sz,
-			typename ImageFrame<T>::SizeType d, ::size_t bytesPerLine);
-
-		/** Copies an entire image from a raw data block WITH zero padding.
-		
-		@NOTE destination image will be reallocated based on the size of source
-		image.
-		
-		TODO: different conversion scenarios */
-		//void CopyFrom(const T *src, const Size2D<typename ImageFrame<T>::SizeType> &sz,
-		//	typename ImageFrame<T>::SizeType depth, ::size_t bytesPerLine,
-		//	RawImageFormat fmt = RawImageFormat::BIP);
+		void CopyFrom(const T *src, const Size2D<SizeType> &sz,
+			SizeType d, ::size_t bytesPerLine);
+		void CopyFrom(const T *src, SizeType w, SizeType h, SizeType d,
+			::size_t bytesPerLine);
 
 		/** Copies image data of an entire image from a raw pointer WITHOUT processing
 		padding bytes.
 		
 		@NOTE destination is reallocated based on the size of source image.
 		@NOTE Users must ensure there is no padding bytes at source data. */
-		void CopyFrom(const T *src, const Size2D<typename ImageFrame<T>::SizeType> &sz,
-			typename ImageFrame<T>::SizeType d,
+		void CopyFrom(const T *src, const Size2D<SizeType> &sz,
+			SizeType d,
 			RawImageFormat fmt = RawImageFormat::BIP);
 
 		/** Copies image data from an std::vector<T> object.

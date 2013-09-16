@@ -11,9 +11,9 @@ int main(void)
 	{
 		TestUtilities();
 		TestCoordinates();
-		//TestImage();
 		TestConvert();
 		TestImageFrames();
+		TestImage();
 	}
 	catch (const std::exception &ex)
 	{
