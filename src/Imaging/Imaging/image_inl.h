@@ -13,8 +13,13 @@ namespace Imaging
 			Copy(reinterpret_cast<const T *>(src), nElem, dst);
 		else if (bytesPerLine > nElemPerLine * sizeof(T))
 		{
+			// Resize destination for given dimension.
 			if (dst.size() != nElem)
-				dst.resize(nElem);
+				dst.resize(nElem);			
+
+			// Copy line by line.
+			// Cast source data as char to change lines according to the bytes/line.
+			// Cast source data as given type to copy element by element.
 			auto it_dst = dst.begin();
 			const char *it_src = reinterpret_cast<const char *>(src);
 			for (auto Y = 0; Y != height; ++Y, it_src += bytesPerLine,
@@ -287,6 +292,14 @@ namespace Imaging
 	}
 
 	template <typename T>
+	void ImageFrame<T>::Clear(void)
+	{
+		this->data_.clear();
+		this->depth_ = 0;
+		this->size_ = Size2D<SizeType>(0, 0);
+	}
+
+	template <typename T>
 	void ImageFrame<T>::CopyFrom(const ImageFrame<T> &imgSrc,
 		const Region<typename ImageFrame<T>::SizeType, typename ImageFrame<T>::SizeType> &roiSrc,
 		const Point2D<typename ImageFrame<T>::SizeType> &orgnDst)
@@ -309,99 +322,90 @@ namespace Imaging
 	template <typename T>
 	void ImageFrame<T>::CopyFrom(const T *src,
 		const Size2D<typename ImageFrame<T>::SizeType> &sz,
-		typename ImageFrame<T>::SizeType depth, ::size_t bytesPerLine,
-		RawImageFormat fmt)
+		typename ImageFrame<T>::SizeType d, ::size_t bytesPerLine)
 	{
-		if (bytesPerLine == sz.width * sizeof(T))	// no zero padding
-			;
-		else// with zero padding
-		{
-			// Reset destination image for given dimension.
-			this->resize(sz, depth);
+		// Copy image data into an std::vector<T> object after taking off padding bytes.
+		std::vector<T> temp;
+		Copy(src, sz.width, sz.height, d, bytesPerLine, temp);
 
-			::size_t nElemPerLine = bytesPerLine / sizeof(T);	// ?
-			switch (fmt)
-			{
-			case Imaging::RawImageFormat::BIP:
-				{
-					auto it_dst = this->GetIterator(0, 0);
-					CopyLines<T>(src, nElemPerLine, it_dst,
-						this->depth * this->size.width, depth * sz.width,
-						sz.height);
-				}
-				break;
-			case Imaging::RawImageFormat::BSQ:
-				//for (auto C = 0; C != depth; ++C)
-				//{
-				//	auto it_dst = this->GetIterator(0, 0, C);
-				//	CopyLines<T>(src + nElemPerLine * sz.height * C, nElemPerLine, it_dst,
-				//		this->size.width, sz.width, sz.height);
-				//}
-				break;
-			//case Imaging::RawImageFormat::BIL:
-			//	{
-			//		auto it_dst = imgDst.GetIterator(0, 0);
-			//		CopyLines<T>(src, nElemWidthSrc, it_dst, imgDst.size.width,
-			//			sz.width, depth * sz.height);
-			//	}
-			//	break;
-			default:
-				std::ostringstream errMsg;
-				errMsg << "Raw image format " << static_cast<int>(fmt) <<
-					" is not supported.";
-				throw std::logic_error(errMsg.str());
-			}
-
-		}
+		// Move the temp data block without reallocating data_.
+		this->data_ = std::move(temp);
+		this->size_ = sz;
+		this->depth_ = d;
 	}
+
+	//template <typename T>
+	//void ImageFrame<T>::CopyFrom(const T *src,
+	//	const Size2D<typename ImageFrame<T>::SizeType> &sz,
+	//	typename ImageFrame<T>::SizeType depth, ::size_t bytesPerLine,
+	//	RawImageFormat fmt)
+	//{
+	//	if (bytesPerLine == sz.width * sizeof(T))	// no zero padding
+	//		;
+	//	else// with zero padding
+	//	{
+	//		// Reset destination image for given dimension.
+	//		this->resize(sz, depth);
+
+	//		::size_t nElemPerLine = bytesPerLine / sizeof(T);	// ?
+	//		switch (fmt)
+	//		{
+	//		case Imaging::RawImageFormat::BIP:
+	//			{
+	//				auto it_dst = this->GetIterator(0, 0);
+	//				CopyLines<T>(src, nElemPerLine, it_dst,
+	//					this->depth * this->size.width, depth * sz.width,
+	//					sz.height);
+	//			}
+	//			break;
+	//		case Imaging::RawImageFormat::BSQ:
+	//			//for (auto C = 0; C != depth; ++C)
+	//			//{
+	//			//	auto it_dst = this->GetIterator(0, 0, C);
+	//			//	CopyLines<T>(src + nElemPerLine * sz.height * C, nElemPerLine, it_dst,
+	//			//		this->size.width, sz.width, sz.height);
+	//			//}
+	//			break;
+	//		//case Imaging::RawImageFormat::BIL:
+	//		//	{
+	//		//		auto it_dst = imgDst.GetIterator(0, 0);
+	//		//		CopyLines<T>(src, nElemWidthSrc, it_dst, imgDst.size.width,
+	//		//			sz.width, depth * sz.height);
+	//		//	}
+	//		//	break;
+	//		default:
+	//			std::ostringstream errMsg;
+	//			errMsg << "Raw image format " << static_cast<int>(fmt) <<
+	//				" is not supported.";
+	//			throw std::logic_error(errMsg.str());
+	//		}
+
+	//	}
+	//}
 
 	template <typename T>
 	void ImageFrame<T>::CopyFrom(const T *src, const Size2D<typename ImageFrame<T>::SizeType> &sz,
 		typename ImageFrame<T>::SizeType d,	RawImageFormat fmt)
 	{
-		// Reset destination image for given dimension.
-		//this->Resize(sz, depth);
 		// Copy raw image data into an std::vector<T> in prior to format conversion.
 		std::vector<T> dataSrc;
-		Copy(dataSrc, d * sz.width * sz.height, temp);
+		Copy(src, d * sz.width * sz.height, dataSrc);
 
 		// Copy image data pixel by pixel.
 		switch (fmt)
 		{
 		case Imaging::RawImageFormat::BIP:
 			this->MoveFrom(std::move(dataSrc), sz, depth);
-			//auto it_dst = this->GetIterator(0, 0);
-			//auto nElem = d * sz.width * sz.height;
-			//std::copy(src, src + nElem, it_dst);
 			break;
 		case Imaging::RawImageFormat::BSQ:
 			std::vector<T> temp;
 			BsqToBip(dataSrc, depth, sz.width * sz.height, temp);
 			this->MoveFrom(std::move(temp), sz, depth);
-			//for (auto C = 0; C != depth; ++C)
-			//{
-			//	auto it_dst = this->GetIterator(0, 0, C);
-			//	for (auto endSrc = src + sz.width * sz.height; src == endSrc; ++src)
-			//	{
-			//		*it_dst = *src;
-			//		it_dst += depth;
-			//	}
-			//}
 			break;
 		case Imaging::RawImageFormat::BIL:
 			std::vector<T> temp;
 			BilToBip(dataSrc, depth, sz.width, sz.height, temp);
 			this->MoveFrom(std::move(temp), sz, depth);
-			//for (auto R = 0; R != sz.height; ++R)
-			//	for (auto C = 0; C != depth; ++C)
-			//	{
-			//		auto it_dst = this->GetIterator(0, R, C);
-			//		for (auto endSrc = src + sz.width; src == endSrc; ++src)
-			//		{
-			//			*it_dst = *src;
-			//			it_dst += depth;
-			//		}
-			//	}
 			break;
 		case Imaging::RawImageFormat::UNKNOWN:
 		default:
@@ -435,27 +439,6 @@ namespace Imaging
 	}
 
 	template <typename T>
-	void ImageFrame<T>::MoveFrom(std::vector<T> &&src, const Size2D<SizeType> &sz,
-		SizeType d)
-	{
-		// Check source dimension.
-		if (src.size() != sz.width * sz.height * d)
-			throw std::runtime_error(
-			"The size of source block is unmatched for given dimension.");
-
-		this->data_ = std::move(src);
-		this->depth_ = d;
-		this->size_ = sz;
-	}
-
-	template <typename T>
-	void ImageFrame<T>::MoveFrom(std::vector<T> &&src, SizeType w, SizeType h,
-		SizeType d)
-	{
-		this->MoveFrom(src, Size2D<SizeType>(w, h), d);
-	}
-
-	template <typename T>
 	void ImageFrame<T>::CopyTo(const Region<SizeType, SizeType> &roiSrc,
 		ImageFrame<T> &imgDst) const
 	{
@@ -474,18 +457,31 @@ namespace Imaging
 	}
 	
 	template <typename T>
-	void ImageFrame<T>::Clear(void)
-	{
-		this->data_.clear();
-		this->depth_ = 0;
-		this->size_ = Size2D<SizeType>(0, 0);
-	}
-
-	template <typename T>
 	typename ImageFrame<T>::SizeType ImageFrame<T>::GetOffset(SizeType x, SizeType y,
 		SizeType c) const
 	{
 		return c + this->depth * x + this->depth * this->size.width * y;
+	}
+
+	template <typename T>
+	void ImageFrame<T>::MoveFrom(std::vector<T> &&src, const Size2D<SizeType> &sz,
+		SizeType d)
+	{
+		// Check source dimension.
+		if (src.size() != sz.width * sz.height * d)
+			throw std::runtime_error(
+			"The size of source block is unmatched for given dimension.");
+
+		this->data_ = std::move(src);
+		this->depth_ = d;
+		this->size_ = sz;
+	}
+
+	template <typename T>
+	void ImageFrame<T>::MoveFrom(std::vector<T> &&src, SizeType w, SizeType h,
+		SizeType d)
+	{
+		this->MoveFrom(src, Size2D<SizeType>(w, h), d);
 	}
 
 	/** Resizes the std::vector<T> object only if necessary.

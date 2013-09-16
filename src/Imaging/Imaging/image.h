@@ -7,9 +7,15 @@
 
 namespace Imaging
 {
-	// TODO
-	/** Copies image data from a void raw pointer to an std::vector<T> object
-	after taking out dummy padding bytes. */
+	/** Copies image data from a void raw pointer to an std::vector<T> object after taking
+	out padding bytes.
+
+	The structure of source data is assumed to be identical to the image data of
+	ImageFrame<T> class as channel -> pixel -> line -> frame.
+	@NOTE Users must ensure the source memory is correctly allocated for the given
+	dimension.
+	@NOTE Destination will be reallocated based on the size of source data.
+	*/
 	template <typename T>
 	void Copy(const void *src, ::size_t width, ::size_t height, ::size_t depth,
 		::size_t bytesPerLine, std::vector<T> &dst);
@@ -139,13 +145,22 @@ namespace Imaging
 		//////////////////////////////////////////////////
 		// Methods.
 
-		/** Copies the image data of an ROI of a source image to another ROI
-		of this image.
+		void Clear(void);
+
+		/** Copies the image data of an ROI of a source image to another ROI of this image.
 		
 		@NOTE destination image must already have been allocated. */
 		void CopyFrom(const ImageFrame<T> &imgSrc,
 			const Region<SizeType, SizeType> &roiSrc,
 			const Point2D<SizeType> &orgnDst);
+
+		/** Copies image data of an entire image from a raw pointer after taking off padding
+		bytes.
+
+		The structure of source data is assumed to be identical to the image data of
+		ImageFrame<T> class. */
+		void CopyFrom(const T *src, const Size2D<typename ImageFrame<T>::SizeType> &sz,
+			typename ImageFrame<T>::SizeType d, ::size_t bytesPerLine);
 
 		/** Copies an entire image from a raw data block WITH zero padding.
 		
@@ -153,13 +168,15 @@ namespace Imaging
 		image.
 		
 		TODO: different conversion scenarios */
-		void CopyFrom(const T *src, const Size2D<typename ImageFrame<T>::SizeType> &sz,
-			typename ImageFrame<T>::SizeType depth, ::size_t bytesPerLine,
-			RawImageFormat fmt = RawImageFormat::BIP);
+		//void CopyFrom(const T *src, const Size2D<typename ImageFrame<T>::SizeType> &sz,
+		//	typename ImageFrame<T>::SizeType depth, ::size_t bytesPerLine,
+		//	RawImageFormat fmt = RawImageFormat::BIP);
 
-		/** Copies an entire image from a raw data block WITHOUT zero padding.
+		/** Copies image data of an entire image from a raw pointer WITHOUT processing
+		padding bytes.
 		
-		@NOTE destination is reallocated based on the size of source image. */
+		@NOTE destination is reallocated based on the size of source image.
+		@NOTE Users must ensure there is no padding bytes at source data. */
 		void CopyFrom(const T *src, const Size2D<typename ImageFrame<T>::SizeType> &sz,
 			typename ImageFrame<T>::SizeType d,
 			RawImageFormat fmt = RawImageFormat::BIP);
@@ -170,12 +187,6 @@ namespace Imaging
 		void CopyFrom(const std::vector<T> &src, const Size2D<SizeType> &sz, SizeType d);
 		void CopyFrom(const std::vector<T> &src, SizeType w, SizeType h, SizeType d);
 
-		/** Moves image data from an std::vector<T> object.
-		
-		The correct dimension must be given. */
-		void MoveFrom(std::vector<T> &&src, const Size2D<SizeType> &sz, SizeType d);
-		void MoveFrom(std::vector<T> &&src, SizeType w, SizeType h, SizeType d);
-
 		/** Copies the image data of this image to a destination image.
 		
 		@NOTE destination image will be resized based on the size of the source
@@ -183,13 +194,18 @@ namespace Imaging
 		void CopyTo(const Region<SizeType, SizeType> &roiSrc,
 			ImageFrame<T> &imgDst) const;
 
-		void Clear(void);
-		void Resize(const Size2D<SizeType> &sz, SizeType d = 1);
-		void Resize(SizeType w, SizeType h, SizeType d = 1);
-
 		void CheckDepth(SizeType c) const;	// move to protected?
 		void CheckRange(SizeType c) const;	// move to protected?
 		void CheckRange(SizeType x, SizeType y) const;	// move to protected?
+
+		/** Moves image data from an std::vector<T> object.
+		
+		The correct dimension must be given. */
+		void MoveFrom(std::vector<T> &&src, const Size2D<SizeType> &sz, SizeType d);
+		void MoveFrom(std::vector<T> &&src, SizeType w, SizeType h, SizeType d);
+
+		void Resize(const Size2D<SizeType> &sz, SizeType d = 1);
+		void Resize(SizeType w, SizeType h, SizeType d = 1);
 
 	protected:
 		//////////////////////////////////////////////////
