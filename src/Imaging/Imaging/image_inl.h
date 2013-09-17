@@ -165,7 +165,7 @@ namespace Imaging
 		ImageFrame<T>()
 #endif
 	{
-		this->Resize(sz, d);
+		this->Reset(sz, d);
 	}
 
 	template <typename T>
@@ -176,7 +176,7 @@ namespace Imaging
 		ImageFrame<T>()
 #endif
 	{
-		this->Resize(w, h, d);
+		this->Reset(w, h, d);
 	}
 
 	template <typename T>
@@ -272,7 +272,8 @@ namespace Imaging
 
 	// The end points are the excluding end of an ROI, so it could be up to (width, height).
 	template <typename T>
-	void ImageFrame<T>::CheckRange(const Point2D<SizeType> &orgn, const Size2D<SizeType> &sz) const
+	void ImageFrame<T>::CheckRange(const Point2D<SizeType> &orgn, const Size2D<SizeType> &sz)
+		const
 	{
 		Point2D<SizeType> ptEnd = orgn + sz;
 		if (orgn.x < 0 || ptEnd.x > this->size.width || orgn.y < 0 ||
@@ -301,8 +302,7 @@ namespace Imaging
 
 	template <typename T>
 	void ImageFrame<T>::CopyFrom(const ImageFrame<T> &imgSrc,
-		const Region<SizeType, SizeType> &roiSrc,
-		const Point2D<SizeType> &orgnDst)
+		const Region<SizeType, SizeType> &roiSrc, const Point2D<SizeType> &orgnDst)
 	{
 		// Check the depth of both images.
 		this->CheckDepth(imgSrc.depth);
@@ -320,9 +320,8 @@ namespace Imaging
 	}
 
 	template <typename T>
-	void ImageFrame<T>::CopyFrom(const T *src,
-		const Size2D<SizeType> &sz,
-		SizeType d, ::size_t bytesPerLine)
+	void ImageFrame<T>::CopyFrom(const T *src, const Size2D<SizeType> &sz, SizeType d,
+		::size_t bytesPerLine)
 	{
 		// Copy image data into an std::vector<T> object after taking off padding bytes.
 		std::vector<T> temp;
@@ -400,7 +399,7 @@ namespace Imaging
 		ImageFrame<T> &imgDst) const
 	{
 		// Reset destination image for given dimension.
-		imgDst.resize(roiSrc.size.width, roiSrc.size.height, this->depth);
+		imgDst.Reset(roiSrc.size.width, roiSrc.size.height, this->depth);
 
 		// Check source/destination ROI.
 		this->CheckRange(roiSrc);
@@ -435,17 +434,16 @@ namespace Imaging
 	}
 
 	template <typename T>
-	void ImageFrame<T>::MoveFrom(std::vector<T> &&src, SizeType w, SizeType h,
-		SizeType d)
+	void ImageFrame<T>::MoveFrom(std::vector<T> &&src, SizeType w, SizeType h, SizeType d)
 	{
-		this->MoveFrom(src, Size2D<SizeType>(w, h), d);
+		this->MoveFrom(std::move(src), Size2D<SizeType>(w, h), d);
 	}
 
 	/** Resizes the std::vector<T> object only if necessary.
 	If size is changed while the total number of elements are the same (reshaping),
 	it does NOT run resize() function of the std::vector<T>. */
 	template <typename T>
-	void ImageFrame<T>::Resize(const Size2D<SizeType> &sz, SizeType d)
+	void ImageFrame<T>::Reset(const Size2D<SizeType> &sz, SizeType d)
 	{
 		SizeType nElem = sz.width * sz.height * d;
 		if (this->data.size() != nElem)
@@ -455,9 +453,9 @@ namespace Imaging
 	}
 
 	template <typename T>
-	void ImageFrame<T>::Resize(SizeType w, SizeType h, SizeType d)
+	void ImageFrame<T>::Reset(SizeType w, SizeType h, SizeType d)
 	{
-		this->Resize(Size2D<SizeType>(w, h), d);
+		this->Reset(Size2D<SizeType>(w, h), d);
 	}
 
 	template <typename T>

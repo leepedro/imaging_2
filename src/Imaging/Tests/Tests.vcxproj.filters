@@ -32,5 +32,8 @@
     <ClCompile Include="test_image.cpp">
       <Filter>Source Files</Filter>
     </ClCompile>
+    <ClCompile Include="test_image_processing.cpp">
+      <Filter>Source Files</Filter>
+    </ClCompile>
   </ItemGroup>
 </Project>

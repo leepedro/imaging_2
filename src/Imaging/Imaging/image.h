@@ -150,9 +150,10 @@ namespace Imaging
 
 		/** Copies the image data of an ROI of a source image to another ROI of this image.
 		
-		@NOTE destination image must already have been allocated. */
-		void CopyFrom(const ImageFrame<T> &imgSrc,
-			const Region<SizeType, SizeType> &roiSrc,
+		@NOTE destination image must already have been allocated.
+		@NOTE If ROI is the entire image, and destination image should be recreated, then
+		use CopyTo() instead. */
+		void CopyFrom(const ImageFrame<T> &imgSrc, const Region<SizeType, SizeType> &roiSrc,
 			const Point2D<SizeType> &orgnDst);
 
 		/** Copies image data of an entire image from a raw pointer after taking off padding
@@ -160,8 +161,8 @@ namespace Imaging
 
 		The structure of source data is assumed to be identical to the image data of
 		ImageFrame<T> class. */
-		void CopyFrom(const T *src, const Size2D<SizeType> &sz,
-			SizeType d, ::size_t bytesPerLine);
+		void CopyFrom(const T *src, const Size2D<SizeType> &sz, SizeType d,
+			::size_t bytesPerLine);
 		void CopyFrom(const T *src, SizeType w, SizeType h, SizeType d,
 			::size_t bytesPerLine);
 
@@ -170,8 +171,7 @@ namespace Imaging
 		
 		@NOTE destination is reallocated based on the size of source image.
 		@NOTE Users must ensure there is no padding bytes at source data. */
-		void CopyFrom(const T *src, const Size2D<SizeType> &sz,
-			SizeType d,
+		void CopyFrom(const T *src, const Size2D<SizeType> &sz, SizeType d,
 			RawImageFormat fmt = RawImageFormat::BIP);
 
 		/** Copies image data from an std::vector<T> object.
@@ -197,8 +197,8 @@ namespace Imaging
 		void MoveFrom(std::vector<T> &&src, const Size2D<SizeType> &sz, SizeType d);
 		void MoveFrom(std::vector<T> &&src, SizeType w, SizeType h, SizeType d);
 
-		void Resize(const Size2D<SizeType> &sz, SizeType d = 1);
-		void Resize(SizeType w, SizeType h, SizeType d = 1);
+		void Reset(const Size2D<SizeType> &sz, SizeType d = 1);
+		void Reset(SizeType w, SizeType h, SizeType d = 1);
 
 	protected:
 		//////////////////////////////////////////////////

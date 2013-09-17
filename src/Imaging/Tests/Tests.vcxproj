@@ -25,6 +25,7 @@
     <ClCompile Include="tests.cpp" />
     <ClCompile Include="test_coordinates.cpp" />
     <ClCompile Include="test_image.cpp" />
+    <ClCompile Include="test_image_processing.cpp" />
     <ClCompile Include="test_utilities.cpp" />
   </ItemGroup>
   <PropertyGroup Label="Globals">

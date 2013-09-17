@@ -30,5 +30,16 @@
     <ClInclude Include="image_inl.h">
       <Filter>Header Files</Filter>
     </ClInclude>
+    <ClInclude Include="image_processing.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="image_processing_inl.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
+  </ItemGroup>
+  <ItemGroup>
+    <ClCompile Include="image_processing.cpp">
+      <Filter>Source Files</Filter>
+    </ClCompile>
   </ItemGroup>
 </Project>

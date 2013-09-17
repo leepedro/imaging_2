@@ -87,6 +87,7 @@
       <WarningLevel>Level3</WarningLevel>
       <Optimization>Disabled</Optimization>
       <PreprocessorDefinitions>WIN32;_DEBUG;_LIB;%(PreprocessorDefinitions)</PreprocessorDefinitions>
+      <AdditionalIncludeDirectories>$(OPENCV_ROOT)\include;%(AdditionalIncludeDirectories)</AdditionalIncludeDirectories>
     </ClCompile>
     <Link>
       <SubSystem>Windows</SubSystem>
@@ -135,6 +136,11 @@
     <ClInclude Include="coordinates_inl.h" />
     <ClInclude Include="image.h" />
     <ClInclude Include="image_inl.h" />
+    <ClInclude Include="image_processing.h" />
+    <ClInclude Include="image_processing_inl.h" />
+  </ItemGroup>
+  <ItemGroup>
+    <ClCompile Include="image_processing.cpp" />
   </ItemGroup>
   <Import Project="$(VCTargetsPath)\Microsoft.Cpp.targets" />
   <ImportGroup Label="ExtensionTargets">
